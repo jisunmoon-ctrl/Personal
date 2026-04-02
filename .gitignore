@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Design tools temporary files
+*.tmp
+*.temp
+~$*
+
+# Archive outputs
+*.zip
+*.rar
+
+# Local notes
+*.local.md
