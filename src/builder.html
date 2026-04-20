@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>내 최대 지원금 확인</title>
+  <style>
+    /* ============================================================
+       §A. Design Tokens  (from SYSTEM.md §2)
+       ============================================================ */
+    :root {
+      --ods-bg: #FFFFFF;
+      --ods-bg-inverse: #141414;
+      --ods-bg-weak: #F5F5F5;
+      --ods-fg: #141414;
+      --ods-fg-weak: #8C8C8C;
+      --ods-border: #E0E0E0;
+      --ods-brand: #00A1FF;
+      --ods-brand-weak: #F0F8FC;
+      --ods-fg-attention: #B27800;
+      --ods-fg-critical: #F05656;
+      --ods-fg-emphasis: #00A1FF;
+      --ods-overlay: rgba(0, 0, 0, 0.05);
+      --ods-overlay-dark: rgba(255, 255, 255, 0.05);
+
+      --color-primary: var(--ods-brand);
+      --color-primary-dark: #008DE0;
+      --color-primary-soft: var(--ods-brand-weak);
+      --color-bg: var(--ods-bg);
+      --color-surface: var(--ods-bg-weak);
+      --color-surface-2: #EEF1F4;
+      --color-text: var(--ods-fg);
+      --color-text-sub: var(--ods-fg-weak);
+      --color-text-muted: #ACACAC;
+      --color-border: var(--ods-border);
+      --color-border-strong: var(--ods-fg);
+      --color-success: #00A1FF;
+      --color-error: var(--ods-fg-critical);
+      --color-error-soft: #FEE2E2;
+
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+
+      --font-10: 10px; --font-11: 11px; --font-12: 12px; --font-13: 13px;
+      --font-14: 14px; --font-15: 15px; --font-16: 16px; --font-17: 17px;
+      --font-18: 18px; --font-20: 20px; --font-24: 24px; --font-28: 28px;
+      --font-32: 32px; --font-40: 40px;
+
+      --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+      --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+      --space-12: 48px; --space-16: 64px;
+
+      --container-max: 1256px;
+      --header-height: 56px;
+
+      --transition-fast: 0.15s ease;
+      --transition-base: 0.2s ease;
+    }
+
+    /* ============================================================
+       §B. Reset
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      font-size: var(--font-15);
+      line-height: 1.5;
+      color: var(--color-text);
+      background: var(--color-bg);
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.3px;
+    }
+    img { max-width: 100%; display: block; }
+    button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
+    input, textarea { font: inherit; }
+    a { color: inherit; text-decoration: none; }
+    em.hl {
+      font-style: normal;
+      background-image: linear-gradient(90deg, rgba(82, 125, 255, 1) 0%, rgba(93, 117, 172, 1) 50%, rgba(20, 134, 255, 1) 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: hl-shimmer 4s linear infinite;
+    }
+    @keyframes hl-shimmer { to { background-position: -200% center; } }
+
+    /* ============================================================
+       §C. Base Elements (from SYSTEM.md §3)
+       ============================================================ */
+    /* — Button */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+      height: 40px;
+      min-width: 95px;
+      padding: 0 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      font-size: var(--font-14);
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+    }
+    .btn--xs { height: 28px; min-width: 76px; padding: 0 12px; font-size: var(--font-12); }
+    .btn--sm { height: 32px; min-width: 85px; padding: 0 12px; font-size: var(--font-13); }
+    .btn--md { height: 40px; min-width: 95px; padding: 0 14px; font-size: var(--font-14); }
+    .btn--lg { height: 44px; min-width: 106px; padding: 0 16px; font-size: var(--font-15); }
+    .btn--xl { height: 48px; min-width: 117px; padding: 0 18px; font-size: var(--font-16); }
+
+    .btn--normal { background: #fff; color: var(--color-text); border-color: var(--color-border); }
+    .btn--normal:hover:not(:disabled) { background: var(--color-surface); }
+    .btn--solid { background: var(--color-text); color: #fff; border-color: var(--color-text); }
+    .btn--solid:hover:not(:disabled) { filter: brightness(0.95); }
+    .btn--outlined { background: #fff; color: var(--color-text); border-color: var(--color-text); }
+    .btn--outlined:hover:not(:disabled) { background: var(--color-surface); }
+    .btn--brand-solid { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .btn--brand-solid:hover:not(:disabled) { background: var(--color-primary-dark); border-color: var(--color-primary-dark); }
+    .btn--brand-outlined { background: #fff; color: var(--color-primary); border-color: var(--color-primary); }
+    .btn--brand-outlined:hover:not(:disabled) { background: var(--color-primary-soft); }
+
+    /* backward compatibility */
+    .btn--primary { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .btn--primary:hover:not(:disabled) { background: var(--color-primary-dark); border-color: var(--color-primary-dark); }
+    .btn--secondary { background: #fff; color: var(--color-text); border-color: var(--color-border); }
+    .btn--secondary:hover:not(:disabled) { background: var(--color-surface); }
+
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn.is-loading { pointer-events: none; }
+    .btn.is-loading::before {
+      content: '';
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      animation: btn-spin 0.7s linear infinite;
+    }
+    @keyframes btn-spin { to { transform: rotate(360deg); } }
+    .btn--submit { height: 52px; width: 100%; font-size: var(--font-17); border-radius: var(--radius-md); }
+
+    /* — Input */
+    .input {
+      width: 100%;
+      height: 40px;
+      padding: 0 var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg);
+      font-size: var(--font-14);
+      color: var(--color-text);
+      transition: border-color var(--transition-fast);
+    }
+    .input--32 { height: 32px; font-size: var(--font-14); line-height: 20px; }
+    .input--40 { height: 44px; font-size: var(--font-16); line-height: 24px; }
+    .input::placeholder { color: var(--color-text-muted); }
+    .input:hover:not(:focus):not(.is-error) { border-color: var(--color-border); }
+    .input:focus { outline: none; border-color: var(--color-primary); }
+    .input.is-error { border-color: var(--color-error); }
+    .input:disabled {
+      background: var(--color-surface-2);
+      color: var(--color-text-muted);
+      cursor: not-allowed;
+    }
+
+    /* — Input Field composition (Figma 47047:72484) */
+    .input-field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      width: 100%;
+    }
+    .input-field__title {
+      font-size: var(--font-11);
+      color: var(--color-text-sub);
+      line-height: 1.3;
+    }
+    .input-field__control {
+      position: relative;
+      width: 100%;
+    }
+    .input-field__control .input {
+      padding-right: 40px;
+    }
+    .input-field__clear,
+    .input-field__text-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: var(--color-text-sub);
+      font-size: var(--font-12);
+      line-height: 1;
+      padding: 0;
+      cursor: pointer;
+    }
+    .input-field__clear {
+      right: 10px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(47, 52, 56, 0.45);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+    .input-field__clear .icon { width: 12px; height: 12px; stroke-width: 2; }
+    .input-field__clear.is-hidden { display: none; }
+    .input-field__text-btn {
+      right: 36px;
+      color: var(--color-primary);
+      font-size: var(--font-11);
+      font-weight: 600;
+    }
+    .input-field__text-btn.is-hidden { display: none; }
+    .input-field__help {
+      font-size: var(--font-12);
+      line-height: 16px;
+      color: var(--color-text-sub);
+      min-height: 16px;
+    }
+    .input-field.is-error .input-field__help { color: var(--color-error); }
+
+    /* — Checkbox (ODS custom — SVG check icon) */
+    .checkbox {
+      display: flex; align-items: flex-start; gap: var(--space-2);
+      cursor: pointer;
+      font-size: var(--font-12);
+      color: var(--color-text-sub);
+      line-height: 1.5;
+    }
+    .checkbox input {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+    .checkbox__box {
+      position: relative;
+      width: 20px; height: 20px;
+      margin-top: 1px;
+      flex-shrink: 0;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-bg);
+      display: inline-flex; align-items: center; justify-content: center;
+      color: transparent;
+      transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+    }
+    .checkbox__box::after {
+      content: '';
+      width: 12px; height: 12px;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='5 12 10 17 19 7'/></svg>");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+    .checkbox input:checked + .checkbox__box {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+    }
+    .checkbox input:checked + .checkbox__box::after { opacity: 1; }
+    .checkbox input:focus-visible + .checkbox__box {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+    .checkbox:hover input:not(:checked) + .checkbox__box { border-color: var(--color-border-strong); }
+    .checkbox a { color: var(--color-primary); text-decoration: underline; }
+
+    /* — Field (label + input + error) */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      padding-bottom: 0px;
+      margin-bottom: 16px;
+    }
+    .field__label { font-size: var(--font-14); font-weight: 500; color: var(--color-text); }
+    .field__required { color: var(--color-error); margin-left: 2px; }
+    .field__error {
+      font-size: var(--font-12);
+      color: var(--color-error);
+      min-height: 16px;     /* 레이아웃 흔들림 방지 — 제거 금지 */
+      line-height: 1.4;
+    }
+
+    /* — Form status */
+    .form-status {
+      text-align: center;
+      margin-top: var(--space-3);
+      min-height: 20px;
+      font-size: var(--font-14);
+    }
+    .form-status.is-success { color: var(--color-success); }
+    .form-status.is-error { color: var(--color-error); }
+
+    /* ============================================================
+       §D. Layout
+       ============================================================ */
+    .page { min-height: 100vh; display: flex; flex-direction: column; }
+    main { flex: 1 0 auto; }    /* contentImage 0개여도 footer 바닥 정렬 */
+
+    .container {
+      width: 100%;
+      max-width: var(--container-max);
+      margin: 0 auto;
+      padding: 0 var(--space-4);
+    }
+    @media (min-width: 768px)  { .container { padding: 0 var(--space-10); } }
+    @media (min-width: 1024px) { .container { max-width: none; padding: 0 120px; } }
+    @media (min-width: 1256px) { .container { max-width: 1136px; padding: 0; } }
+
+    /* ============================================================
+       §E. Components
+       ============================================================ */
+    /* — Header */
+    .header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-border);
+      height: var(--header-height);
+    }
+    .header__inner {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.75);
+    }
+    .header__logo {
+      display: inline-flex;
+      align-items: center;
+      line-height: 0;
+    }
+    .header__logo img {
+      height: 24px;
+      width: auto;
+      display: block;
+    }
+    .header__cta {
+      padding: var(--space-2) var(--space-4);
+      background: var(--color-primary);
+      color: white;
+      border-radius: var(--radius-md);
+      font-size: var(--font-14); font-weight: 600;
+      transition: background var(--transition-fast);
+    }
+    .header__cta:hover { background: var(--color-primary-dark); }
+
+    /* — Service Toggle */
+    .service-toggle {
+      padding: 36px 0 60px;
+      background: linear-gradient(180deg, rgba(209, 242, 255, 1) 1%, rgba(226, 247, 253, 1) 38%, rgba(244, 249, 251, 1) 99%);
+    }
+    .service-toggle__title {
+      font-size: 44px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 58px;
+      min-height: 116px;
+      letter-spacing: -0.02em;
+      margin-bottom: var(--space-8);
+      opacity: 0;
+      filter: blur(10px);
+      transform: scale(0.94);
+      transition: opacity 0.7s ease, transform 0.7s ease, filter 0.7s ease;
+      will-change: opacity, transform, filter;
+    }
+    .service-toggle__title.is-revealed {
+      opacity: 1;
+      filter: blur(0);
+      transform: scale(1);
+      animation: title-reveal-zoom-blur 0.7s ease forwards;
+    }
+    @keyframes title-reveal-zoom-blur {
+      0% {
+        opacity: 0;
+        filter: blur(10px);
+        transform: scale(0.94);
+      }
+      60% {
+        opacity: 1;
+        filter: blur(1.5px);
+        transform: scale(1.015);
+      }
+      100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: scale(1);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .service-toggle__title,
+      .service-toggle__title.is-revealed {
+        opacity: 1;
+        filter: none;
+        transform: none;
+        animation: none;
+        transition: none;
+      }
+      .hl {
+        animation: none;
+        background: var(--color-primary);
+        -webkit-background-clip: initial;
+        background-clip: initial;
+        color: var(--color-primary);
+      }
+    }
+    @media (min-width: 768px) {
+      .service-toggle { padding: 36px 0 60px; }
+      .service-toggle__title { font-size: 44px; }
+    }
+    .service-toggle__grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      width: 100%;
+      column-gap: 4px;
+      row-gap: 4px;
+      height: fit-content;
+      padding-bottom: 20px;
+    }
+    .service-card {
+      position: relative;
+      display: flex;
+      align-items: center; justify-content: center;
+      padding: 0 var(--space-3);
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      height: 44px;
+      min-height: 44px;
+      transition: all var(--transition-fast);
+      cursor: pointer;
+    }
+    .service-card:hover { border-color: var(--color-border-strong); }
+    .service-card.is-active {
+      border: 2px solid var(--color-border-strong);
+      background: var(--color-surface-2);
+    }
+    .icon {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .icon--lg { width: 32px; height: 32px; }
+    .service-card__label {
+      font-size: var(--font-15);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    @media (min-width: 768px) {
+      .service-card { height: 44px; min-height: 44px; padding: 0 var(--space-4); }
+      .service-card__label { font-size: var(--font-17); }
+    }
+    .service-toggle__addon {
+      display: flex; align-items: center; gap: var(--space-2);
+      margin-top: var(--space-5);
+      font-size: var(--font-14);
+      color: var(--color-text);
+      cursor: pointer;
+      user-select: none;
+    }
+    .service-toggle__addon input {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+    .service-toggle__addon .checkbox__box { margin-top: 0; }
+
+    /* — Contact Form */
+    .contact-form { padding: 60px 0; background-color: rgba(244, 249, 251, 1); }
+    .contact-form .container {
+      width: 100%;
+      height: fit-content;
+      padding-left: 80px;
+      padding-right: 80px;
+    }
+    .contact-form__title {
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 40px;
+      letter-spacing: -0.02em;
+    }
+    .contact-form__fields {
+      display: flex; flex-direction: column; gap: var(--space-4);
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    .contact-form__fields .field { height: 92px; }
+    .contact-form__secondary {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      margin-top: var(--space-4); /* CTA 아래 보조행동 16px */
+    }
+
+    /* — Content Image */
+    .content-image { padding: var(--space-5) 0; }
+    .content-image__wrap {
+      display: flex; flex-direction: column; gap: var(--space-3); align-items: center;
+    }
+    .content-image__media {
+      width: 100%;
+      max-width: 720px;
+      aspect-ratio: 16 / 9;
+      background: var(--color-surface-2);
+      border-radius: var(--radius-lg);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-text-sub);
+      font-size: var(--font-14);
+      overflow: hidden;
+    }
+    .content-image__media img { width: 100%; height: 100%; object-fit: cover; }
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+      will-change: opacity, transform;
+    }
+    .scroll-reveal.is-revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    @media (min-width: 768px) { .content-image { padding: var(--space-6) 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      .scroll-reveal,
+      .scroll-reveal.is-revealed {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+    }
+
+    /* — Footer */
+    .footer {
+      margin-top: auto;
+      padding: 48px 0 36px;
+      background: #f7f9fa;
+      border-top: 1px solid var(--color-border);
+    }
+    .footer__top {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+      padding-bottom: var(--space-6);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .footer__title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: var(--font-24);
+      font-weight: 700;
+      color: var(--color-text);
+      text-decoration: none;
+    }
+    .footer__phone {
+      display: block;
+      margin-bottom: 8px;
+      font-size: var(--font-32);
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--color-text);
+      text-decoration: none;
+    }
+    .footer__hours {
+      color: var(--color-text-sub);
+      font-size: var(--font-14);
+      margin-bottom: 4px;
+    }
+    .footer__desc {
+      color: var(--color-text-sub);
+      font-size: var(--font-13);
+      line-height: 1.7;
+      margin-bottom: 2px;
+    }
+    .footer__links {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+      gap: 10px 18px;
+      align-content: start;
+    }
+    .footer__link {
+      color: var(--color-text-sub);
+      font-size: var(--font-14);
+      text-decoration: none;
+      line-height: 1.5;
+    }
+    .footer__link:hover { text-decoration: underline; }
+    .footer__bottom {
+      padding-top: var(--space-4);
+      color: var(--color-text-sub);
+      font-size: var(--font-12);
+      line-height: 1.6;
+    }
+    @media (min-width: 1024px) {
+      .footer__top {
+        grid-template-columns: minmax(320px, 420px) 1fr;
+        gap: 48px;
+      }
+    }
+
+    /* — Sticky CTA (mobile only) */
+    .sticky-cta {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 90;
+      padding: var(--space-3) var(--space-5);
+      background: var(--color-bg);
+      border-top: 1px solid var(--color-border);
+      display: block;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(100%);
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0.25s;
+    }
+    .sticky-cta.is-visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      pointer-events: auto;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .sticky-cta__button {
+      display: block; width: 100%;
+      padding: var(--space-4);
+      background: var(--color-primary);
+      color: white;
+      border-radius: var(--radius-md);
+      font-size: var(--font-15); font-weight: 600;
+      text-align: center;
+    }
+    @media (min-width: 768px) { .sticky-cta { display: none; } }
+
+    /* ============================================================
+       §F. Preview mode (admin iframe)
+       ============================================================ */
+    body.is-preview .sticky-cta { display: none; }
+    body.is-preview .header { position: static; }
+  </style>
+</head>
+<body>
+  <div class="page" id="page"></div>
+  <div class="sticky-cta"><a class="sticky-cta__button" href="#contact">지금 상담 신청하기</a></div>
+
+  <script>
+    const LOGO_IMAGE_URL = 'https://asset.ohousecdn.com/static/AssetOhouseHorizontal/image_120.png';
+
+    /* ============================================================
+       §1. PAGE CONFIG — 이 객체만 바꾸면 새 LP 생성
+       ============================================================ */
+    const pageConfig = {
+      meta: { title: '내 최대 지원금 확인', slug: 'InternetRental_01_260417_ally' },
+      header: { ctaText: '상담하기', ctaHref: '#contact' },
+      components: [
+        { type: 'serviceToggle', visible: true, props: {
+            section: {
+              title: '놓치고 있던 내 최대 지원금 지금 확인해보세요!',
+              highlightTitle: '최대 지원금'
+            },
+            services: [
+              { value: 'internet', label: '인터넷', icon: 'icon:wifi', enabled: true },
+              { value: 'rental',   label: '렌탈',   icon: 'icon:droplet', enabled: true },
+              { value: 'moving',   label: '이사',   icon: 'icon:package', enabled: true }
+            ],
+            defaultValue: 'internet'
+        }},
+        { type: 'contactForm', visible: true, props: {
+            title: '상담 신청하기',
+            fields: [
+              { name: 'name',  label: '이름',   placeholder: '홍길동',               required: true, type: 'text' },
+              { name: 'phone', label: '연락처', placeholder: "'-' 없이 숫자만 입력", required: true, type: 'tel'  }
+            ],
+            consentText: '개인정보 수집·이용에 동의합니다. (항목: 이름, 연락처 / 목적: 상담 연락 / 보유기간: 90일)',
+            consentHref: 'https://www.ohou.se/policy/privacy',
+            submitText: '신청하기',
+            webhookUrl: 'PASTE_YOUR_APPS_SCRIPT_URL_HERE'
+        }},
+        { type: 'contentImage', visible: true, props: { src: '' } },
+        { type: 'contentImage', visible: true, props: { src: '' } }
+      ]
+    };
+
+    /* ============================================================
+       §2. STATE & CONSTANTS (ERROR from SYSTEM.md §4-3)
+       ============================================================ */
+    const ERROR = {
+      NAME_EMPTY:        '이름을 입력해주세요.',
+      NAME_TOO_LONG:     '이름은 50자 이내로 입력해주세요.',
+      NAME_INVALID_CHAR: '한글 또는 영문만 입력해주세요.',
+      PHONE_EMPTY:       '연락처를 입력해주세요.',
+      PHONE_INVALID:     '올바른 휴대폰 번호를 입력해주세요. (예: 010-1234-5678)',
+      CONSENT_REQUIRED:  '개인정보 수집·이용 동의가 필요해요.',
+      NETWORK_FAIL:      '전송에 실패했어요. 잠시 후 다시 시도해주세요.',
+      WEBHOOK_MISSING:   'webhookUrl이 설정되지 않았어요. pageConfig > contactForm > webhookUrl을 교체해주세요.'
+    };
+    const SUCCESS = { SUBMITTED: '신청이 접수되었어요. 곧 연락드릴게요.' };
+
+    const state = {
+      service: null,
+      fieldTouched: { name: false, phone: false },
+      submitting: false
+    };
+
+    /* ============================================================
+       §3. RENDERERS
+       ============================================================ */
+    const ICON_SVG = {
+      wifi: '<path d="M5 13a10 10 0 0 1 14 0"/><path d="M8 16a6 6 0 0 1 8 0"/><path d="M11.5 19.5a2 2 0 0 1 1 0"/><circle cx="12" cy="20" r="1"/>',
+      droplet: '<path d="M12 3c3.8 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2.2-6 6-11z"/>',
+      package: '<path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>',
+      xCircle: '<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>'
+    };
+    function iconMarkup(name, className = 'icon', label = '') {
+      const path = ICON_SVG[name];
+      if (!path) return '';
+      const aria = label ? `role="img" aria-label="${label}"` : 'aria-hidden="true"';
+      return `<svg class="${className}" viewBox="0 0 24 24" ${aria}>${path}</svg>`;
+    }
+    function renderIcon(icon) {
+      if (!icon) return '';
+      if (typeof icon === 'string' && icon.startsWith('icon:')) {
+        return iconMarkup(icon.replace('icon:', ''), 'icon icon--lg');
+      }
+      if (/^https?:\/\//.test(icon) || icon.startsWith('/')) return `<img src="${icon}" alt="">`;
+      return icon;
+    }
+
+    function renderHeader(h) {
+      return `
+        <header class="header">
+          <div class="container header__inner">
+            <div class="header__logo">
+              <img src="${LOGO_IMAGE_URL}" alt="오늘의집 로고" />
+            </div>
+            <a class="header__cta" href="${h.ctaHref}">${h.ctaText}</a>
+          </div>
+        </header>
+      `;
+    }
+
+    function renderServiceToggleGrid({ services, defaultValue }) {
+      const enabled = (services || []).filter(s => s.enabled !== false);
+      if (enabled.length === 0) return '';
+
+      if (state.service === null || !enabled.find(s => s.value === state.service)) {
+        state.service = (enabled.find(s => s.value === defaultValue) || enabled[0]).value;
+      }
+
+      return `
+        <div class="service-toggle__grid" role="radiogroup">
+          ${enabled.map(s => `
+            <button
+              type="button"
+              role="radio"
+              aria-checked="${state.service === s.value}"
+              class="service-card ${state.service === s.value ? 'is-active' : ''}"
+              data-service="${s.value}"
+            >
+              <span class="service-card__label">${s.label}</span>
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function stripHtml(raw) {
+      return String(raw || '')
+        .replace(/<br\s*\/?>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+    function resolveServiceToggleSection(props = {}) {
+      const section = (props.section && typeof props.section === 'object') ? props.section : {};
+      const resolvedTitle = section.title || stripHtml(props.title);
+      let resolvedHighlightTitle = section.highlightTitle || '';
+      if (!resolvedHighlightTitle && props.title) {
+        const match = String(props.title).match(/<em[^>]*>(.*?)<\/em>/i);
+        if (match && match[1]) resolvedHighlightTitle = stripHtml(match[1]);
+      }
+      return { title: resolvedTitle || '', highlightTitle: resolvedHighlightTitle || '' };
+    }
+    function renderServiceToggleTitleMarkup(section) {
+      const title = section?.title || '';
+      const highlightTitle = section?.highlightTitle || '';
+      if (!title) return '';
+      if (!highlightTitle) return title;
+      const idx = title.indexOf(highlightTitle);
+      if (idx < 0) return title;
+      const before = title.slice(0, idx);
+      const after = title.slice(idx + highlightTitle.length);
+      return `${before}<em class="hl">${highlightTitle}</em>${after}`;
+    }
+    function renderServiceToggle(props = {}) {
+      const section = resolveServiceToggleSection(props);
+      const titleMarkup = renderServiceToggleTitleMarkup(section);
+      return `
+        <section class="service-toggle">
+          <div class="container">
+            ${titleMarkup ? `<h2 class="service-toggle__title">${titleMarkup}</h2>` : ''}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderContactForm(props) {
+      const consentLink = props.consentHref
+        ? ` <a href="${props.consentHref}" target="_blank" rel="noopener">전문 보기</a>`
+        : '';
+      const serviceToggleComponent = pageConfig.components.find(c => c.type === 'serviceToggle');
+      const serviceToggleGrid = serviceToggleComponent
+        ? renderServiceToggleGrid(serviceToggleComponent.props || {})
+        : '';
+      return `
+        <section class="contact-form" id="contact">
+          <div class="container scroll-reveal">
+            <h2 class="contact-form__title">${props.title}</h2>
+            <form class="contact-form__fields" id="contact-form" novalidate>
+              ${serviceToggleGrid}
+              ${props.fields.map(f => `
+                <div class="field">
+                  <label class="field__label" for="f-${f.name}">
+                    ${f.label}${f.required ? '<span class="field__required" aria-hidden="true">*</span>' : ''}
+                  </label>
+                  <div class="input-field">
+                    <div class="input-field__control">
+                      <input
+                        class="input input--40"
+                        id="f-${f.name}"
+                        name="${f.name}"
+                        type="${f.type || 'text'}"
+                        placeholder="${f.placeholder || ''}"
+                        ${f.required ? 'required aria-required="true"' : ''}
+                        aria-invalid="false"
+                        aria-describedby="f-${f.name}-error"
+                        autocomplete="${f.name === 'phone' ? 'tel' : (f.name === 'name' ? 'name' : 'off')}"
+                        inputmode="${f.type === 'tel' ? 'tel' : (f.type === 'email' ? 'email' : 'text')}"
+                      />
+                      <button
+                        type="button"
+                        class="input-field__clear is-hidden"
+                        data-clear-for="${f.name}"
+                        aria-label="${f.label} 입력 지우기"
+                      >${iconMarkup('xCircle', 'icon')}</button>
+                    </div>
+                  </div>
+                  <div class="field__error"
+                       id="f-${f.name}-error"
+                       data-error-for="${f.name}"
+                       role="alert"
+                       aria-live="polite"></div>
+                </div>
+              `).join('')}
+              <button class="btn btn--primary btn--submit" type="submit">${props.submitText}</button>
+              <div class="contact-form__secondary">
+                <label class="checkbox">
+                  <input type="checkbox" id="f-consent" required aria-required="true">
+                  <span class="checkbox__box" aria-hidden="true"></span>
+                  <span>${props.consentText}${consentLink}</span>
+                </label>
+              </div>
+              <div class="form-status" id="form-status" role="status" aria-live="polite"></div>
+            </form>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderContentImage({ src }) {
+      return `
+        <section class="content-image scroll-reveal">
+          <div class="container">
+            <div class="content-image__wrap">
+              <div class="content-image__media">
+                ${src ? `<img src="${src}" alt="">` : `<span>이미지 영역 · placeholder</span>`}
+              </div>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderFooter() {
+      return `
+        <footer class="footer">
+          <div class="container">
+            <div class="footer__top">
+              <div class="footer__contact">
+                <a class="footer__title" href="https://ohou.se/experts" target="_blank" rel="noopener">고객센터</a>
+                <a class="footer__phone" href="tel:1670-0876">1670-0876</a>
+                <p class="footer__hours">09:00~18:00</p>
+                <p class="footer__desc">평일: 전체 문의 상담</p>
+                <p class="footer__desc">토요일, 공휴일: 오늘의집 직접배송 주문건 상담</p>
+                <p class="footer__desc">일요일: 휴무</p>
+              </div>
+              <div class="footer__links">
+                <a class="footer__link" href="https://ohou.se/experts" target="_blank" rel="noopener">회사소개</a>
+                <a class="footer__link" href="https://ohou.se/experts" target="_blank" rel="noopener">제휴/광고 문의</a>
+                <a class="footer__link" href="https://ohou.se/experts" target="_blank" rel="noopener">채용정보</a>
+                <a class="footer__link" href="https://ohou.se/experts" target="_blank" rel="noopener">시공파트너 안내</a>
+                <a class="footer__link" href="https://ohou.se/experts" target="_blank" rel="noopener">이용약관</a>
+                <a class="footer__link" href="https://ohou.se/experts" target="_blank" rel="noopener">상품광고 소개</a>
+                <a class="footer__link" href="https://ohou.se/policy/privacy" target="_blank" rel="noopener">개인정보 처리방침</a>
+                <a class="footer__link" href="https://ohou.se/experts" target="_blank" rel="noopener">고객의 소리</a>
+              </div>
+            </div>
+            <p class="footer__bottom">Copyright 2014. bucketplace, Co., Ltd. All rights reserved.</p>
+          </div>
+        </footer>
+      `;
+    }
+
+    const rendererMap = {
+      serviceToggle: renderServiceToggle,
+      contactForm: renderContactForm,
+      contentImage: renderContentImage
+    };
+
+    /* ============================================================
+       §4. PAGE ASSEMBLY
+       ============================================================ */
+    function renderPage(config) {
+      document.title = config.meta.title || 'Landing';
+      state.service = null;
+      state.fieldTouched = { name: false, phone: false };
+
+      const root = document.getElementById('page');
+      root.innerHTML = [
+        renderHeader(config.header),
+        `<main>${config.components
+          .filter(c => c.visible !== false)
+          .map(c => { const fn = rendererMap[c.type]; return fn ? fn(c.props) : ''; })
+          .join('')}</main>`,
+        renderFooter()
+      ].join('');
+      bindEvents();
+    }
+
+    /* ============================================================
+       §5. VALIDATORS (from SYSTEM.md §4)
+       ============================================================ */
+    function validateName(raw) {
+      const v = (raw || '').trim();
+      if (!v) return ERROR.NAME_EMPTY;
+      if (v.length > 50) return ERROR.NAME_TOO_LONG;
+      if (!/^[가-힣a-zA-Z\s]+$/.test(v)) return ERROR.NAME_INVALID_CHAR;
+      return null;
+    }
+    function validatePhone(raw) {
+      const v = (raw || '').replace(/[-\s]/g, '');
+      if (!v) return ERROR.PHONE_EMPTY;
+      if (!/^01[0-9]{8,9}$/.test(v)) return ERROR.PHONE_INVALID;
+      return null;
+    }
+    function validateConsent(checked) {
+      return checked ? null : ERROR.CONSENT_REQUIRED;
+    }
+    const VALIDATORS = { name: validateName, phone: validatePhone };
+
+    function setFieldError(name, msg) {
+      const input = document.querySelector(`[name="${name}"]`);
+      const err = document.querySelector(`[data-error-for="${name}"]`);
+      if (input) {
+        input.classList.toggle('is-error', !!msg);
+        input.setAttribute('aria-invalid', msg ? 'true' : 'false');
+      }
+      if (err) err.textContent = msg || '';
+    }
+    function clearFormStatus() {
+      const s = document.getElementById('form-status');
+      if (!s) return;
+      s.textContent = '';
+      s.className = 'form-status';
+    }
+
+    /* ============================================================
+       §6. EVENTS
+       ============================================================ */
+    function bindEvents() {
+      bindTitleRevealAnimation();
+      bindScrollRevealAnimation();
+      bindStickyCtaVisibility();
+
+      // Input clear button / typing state
+      document.querySelectorAll('[data-clear-for]').forEach(btn => {
+        const name = btn.dataset.clearFor;
+        const input = document.querySelector(`[name="${name}"]`);
+        if (!input) return;
+        const toggleClear = () => btn.classList.toggle('is-hidden', !input.value || input.disabled);
+        toggleClear();
+        input.addEventListener('input', toggleClear);
+        input.addEventListener('blur', toggleClear);
+        input.addEventListener('focus', toggleClear);
+        btn.addEventListener('click', () => {
+          input.value = '';
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.focus();
+          toggleClear();
+        });
+      });
+
+      // Service card (single select)
+      document.querySelectorAll('.service-card').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.service = btn.dataset.service;
+          document.querySelectorAll('.service-card').forEach(b => {
+            const active = b.dataset.service === state.service;
+            b.classList.toggle('is-active', active);
+            b.setAttribute('aria-checked', active ? 'true' : 'false');
+          });
+        });
+      });
+
+      // Form field validation (blur + input 이중)
+      Object.keys(VALIDATORS).forEach(name => {
+        const input = document.querySelector(`[name="${name}"]`);
+        if (!input) return;
+        state.fieldTouched[name] = false;
+
+        input.addEventListener('blur', () => {
+          state.fieldTouched[name] = true;
+          setFieldError(name, VALIDATORS[name](input.value));
+        });
+        input.addEventListener('input', () => {
+          if (!state.fieldTouched[name]) return;
+          setFieldError(name, VALIDATORS[name](input.value));
+        });
+      });
+
+      // Consent checkbox
+      const consentEl = document.getElementById('f-consent');
+      if (consentEl) {
+        consentEl.addEventListener('change', () => { if (consentEl.checked) clearFormStatus(); });
+      }
+
+      // Form submit
+      const form = document.getElementById('contact-form');
+      if (form) form.addEventListener('submit', handleSubmit);
+    }
+
+    function bindStickyCtaVisibility() {
+      const stickyCtaEl = document.querySelector('.sticky-cta');
+      const contactSectionEl = document.getElementById('contact');
+      if (!stickyCtaEl || !contactSectionEl) return;
+
+      const toggleStickyCta = (isVisible) => {
+        stickyCtaEl.classList.toggle('is-visible', isVisible);
+      };
+
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => toggleStickyCta(entry.isIntersecting));
+        }, {
+          threshold: 0.05
+        });
+        observer.observe(contactSectionEl);
+        return;
+      }
+
+      const onScroll = () => {
+        const rect = contactSectionEl.getBoundingClientRect();
+        const isVisible = rect.top <= window.innerHeight && rect.bottom >= 0;
+        toggleStickyCta(isVisible);
+      };
+      onScroll();
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll);
+    }
+
+    function bindTitleRevealAnimation() {
+      const titleEl = document.querySelector('.service-toggle__title');
+      if (!titleEl) return;
+
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reducedMotion) {
+        titleEl.classList.add('is-revealed');
+        return;
+      }
+
+      if (!('IntersectionObserver' in window)) {
+        titleEl.classList.add('is-revealed');
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-revealed');
+          obs.unobserve(entry.target);
+        });
+      }, { threshold: 0.3 });
+
+      observer.observe(titleEl);
+    }
+
+    function bindScrollRevealAnimation() {
+      const targets = document.querySelectorAll('.scroll-reveal');
+      if (targets.length === 0) return;
+
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reducedMotion || !('IntersectionObserver' in window)) {
+        targets.forEach(el => el.classList.add('is-revealed'));
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-revealed');
+          obs.unobserve(entry.target);
+        });
+      }, {
+        threshold: 0.3
+      });
+
+      targets.forEach(el => observer.observe(el));
+    }
+
+    /* ============================================================
+       §7. SUBMIT → Apps Script Webhook
+       ============================================================ */
+    async function handleSubmit(e) {
+      e.preventDefault();
+      if (state.submitting) return;
+
+      const formEl = e.currentTarget;
+      const statusEl = document.getElementById('form-status');
+      const submitBtn = formEl.querySelector('.btn--submit');
+      const formCfg = pageConfig.components.find(c => c.type === 'contactForm').props;
+
+      clearFormStatus();
+      Object.keys(VALIDATORS).forEach(n => setFieldError(n, null));
+
+      const nameEl = formEl.querySelector('[name="name"]');
+      const phoneEl = formEl.querySelector('[name="phone"]');
+      const consentEl = document.getElementById('f-consent');
+
+      const errors = {
+        name: validateName(nameEl ? nameEl.value : ''),
+        phone: validatePhone(phoneEl ? phoneEl.value : ''),
+        consent: validateConsent(consentEl ? consentEl.checked : false)
+      };
+
+      if (errors.name) setFieldError('name', errors.name);
+      if (errors.phone) setFieldError('phone', errors.phone);
+      if (errors.consent) {
+        statusEl.textContent = errors.consent;
+        statusEl.classList.add('is-error');
+      }
+
+      const firstInvalid = ['name', 'phone', 'consent'].find(k => errors[k]);
+      if (firstInvalid) {
+        if (firstInvalid in state.fieldTouched) state.fieldTouched[firstInvalid] = true;
+        const focusEl = firstInvalid === 'consent' ? consentEl : formEl.querySelector(`[name="${firstInvalid}"]`);
+        if (focusEl) focusEl.focus();
+        return;
+      }
+
+      state.submitting = true;
+      submitBtn.disabled = true;
+      submitBtn.textContent = '접수 중…';
+
+      const payload = {
+        submittedAt:   new Date().toISOString(),
+        pageSlug:      pageConfig.meta.slug,
+        name:          nameEl.value.trim(),
+        phone:         phoneEl.value.replace(/[-\s]/g, ''),
+        service:       state.service,
+        consentAgreed: true,
+        userAgent:     navigator.userAgent,
+        referrer:      document.referrer || ''
+      };
+
+      try {
+        if (!formCfg.webhookUrl || formCfg.webhookUrl.startsWith('PASTE_')) {
+          throw new Error(ERROR.WEBHOOK_MISSING);
+        }
+        await fetch(formCfg.webhookUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        statusEl.textContent = SUCCESS.SUBMITTED;
+        statusEl.classList.add('is-success');
+        formEl.reset();
+        Object.keys(state.fieldTouched).forEach(k => { state.fieldTouched[k] = false; });
+      } catch (err) {
+        statusEl.textContent = err.message || ERROR.NETWORK_FAIL;
+        statusEl.classList.add('is-error');
+      } finally {
+        state.submitting = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = formCfg.submitText;
+      }
+    }
+
+    /* ============================================================
+       §8. BOOT — preview mode 지원
+       ============================================================ */
+    (function boot() {
+      const isPreview = new URLSearchParams(location.search).get('mode') === 'preview';
+      renderPage(pageConfig);
+      if (isPreview) {
+        document.body.classList.add('is-preview');
+        window.addEventListener('message', (e) => {
+          if (!e.data || e.data.type !== 'config') return;
+          try { renderPage(e.data.payload); }
+          catch (err) { console.error('[preview] renderPage failed', err); }
+        });
+        try { window.parent.postMessage({ type: 'preview-ready' }, '*'); } catch (_) {}
+      }
+    })();
+  </script>
+</body>
+</html>

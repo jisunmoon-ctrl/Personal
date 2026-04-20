@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>마케팅 리드 랜딩페이지 빌더</title>
+  <style>
+    /* ============================================================
+       §A. Design Tokens (from SYSTEM.md §2)
+       ============================================================ */
+    :root {
+      --ods-bg: #FFFFFF; --ods-bg-inverse: #141414; --ods-bg-weak: #F5F5F5;
+      --ods-fg: #141414; --ods-fg-weak: #8C8C8C; --ods-border: #E0E0E0;
+      --ods-brand: #00A1FF; --ods-brand-weak: #F0F8FC;
+      --ods-fg-attention: #B27800; --ods-fg-critical: #F05656; --ods-fg-emphasis: #00A1FF;
+      --ods-overlay: rgba(0, 0, 0, 0.05); --ods-overlay-dark: rgba(255, 255, 255, 0.05);
+
+      --color-primary: var(--ods-brand); --color-primary-dark: #008DE0; --color-primary-soft: var(--ods-brand-weak);
+      --color-bg: var(--ods-bg); --color-surface: var(--ods-bg-weak); --color-surface-2: #EEF1F4;
+      --color-text: var(--ods-fg); --color-text-sub: var(--ods-fg-weak); --color-text-muted: #ACACAC;
+      --color-border: var(--ods-border); --color-border-strong: var(--ods-fg);
+      --color-success: #00A1FF; --color-error: var(--ods-fg-critical); --color-error-soft: #FEE2E2;
+      --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px;
+      --font-10: 10px; --font-11: 11px; --font-12: 12px; --font-13: 13px; --font-14: 14px; --font-15: 15px;
+      --font-16: 16px; --font-17: 17px; --font-18: 18px; --font-20: 20px; --font-24: 24px; --font-32: 32px;
+      --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+      --space-5: 20px; --space-6: 24px;
+      --topbar-height: 56px; --panel-width: 440px;
+      --banner-input-width: 300px;
+      --tab-height: 44px; --tab-indicator-h: 2px;
+      --banner-square-w: 1080px; --banner-square-h: 1080px;
+      --banner-landscape-w: 1200px; --banner-landscape-h: 628px;
+      --banner-story-w: 1080px; --banner-story-h: 1920px;
+      --transition-fast: 0.15s ease;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      font-size: var(--font-14); color: var(--color-text); background: var(--color-bg);
+      height: 100vh; overflow: hidden;
+      -webkit-font-smoothing: antialiased; letter-spacing: -0.3px;
+    }
+    button, input, textarea, select { font-family: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ============================================================
+       §B. Topbar & Layout
+       ============================================================ */
+    .topbar {
+      height: var(--topbar-height); padding: 0 var(--space-4);
+      border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: #fff; gap: var(--space-3);
+    }
+    .topbar__title { font-size: var(--font-15); font-weight: 700; display: flex; align-items: center; gap: var(--space-2); }
+    .topbar__title .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary); }
+    .topbar__actions { display: flex; gap: var(--space-1); flex-shrink: 0; }
+
+    /* Buttons (SYSTEM.md §3-1) */
+    .btn {
+      height: 40px; min-width: 95px; padding: 0 14px;
+      border-radius: 6px; border: 1px solid var(--color-border);
+      background: #fff; font-size: var(--font-14); font-weight: 500;
+      cursor: pointer; display: inline-flex; align-items: center; gap: var(--space-2);
+      transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+    }
+    .btn--xs { height: 28px; min-width: 76px; padding: 0 12px; font-size: var(--font-12); }
+    .btn--sm { height: 32px; min-width: 85px; padding: 0 12px; font-size: var(--font-13); }
+    .btn--md { height: 40px; min-width: 95px; padding: 0 14px; font-size: var(--font-14); }
+    .btn--lg { height: 44px; min-width: 106px; padding: 0 16px; font-size: var(--font-15); }
+    .btn--xl { height: 48px; min-width: 117px; padding: 0 18px; font-size: var(--font-16); }
+    .btn:hover { background: var(--color-surface); }
+    .btn--normal { background: #fff; color: var(--color-text); border-color: var(--color-border); }
+    .btn--normal:hover:not(:disabled) { background: var(--color-surface); }
+    .btn--solid { background: var(--color-text); color: #fff; border-color: var(--color-text); }
+    .btn--solid:hover:not(:disabled) { filter: brightness(0.95); }
+    .btn--outlined { background: #fff; color: var(--color-text); border-color: var(--color-text); }
+    .btn--outlined:hover:not(:disabled) { background: var(--color-surface); }
+    .btn--brand-solid { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .btn--brand-solid:hover:not(:disabled) { background: var(--color-primary-dark); border-color: var(--color-primary-dark); }
+    .btn--brand-outlined { background: #fff; color: var(--color-primary); border-color: var(--color-primary); }
+    .btn--brand-outlined:hover:not(:disabled) { background: var(--color-primary-soft); }
+    .btn--primary { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .btn--primary:hover { background: var(--color-primary-dark); border-color: var(--color-primary-dark); }
+    .btn--secondary { background: #fff; color: var(--color-text); border-color: var(--color-border); }
+    .btn--secondary:hover { background: var(--color-surface); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn.is-loading { pointer-events: none; }
+    .btn.is-loading::before {
+      content: '';
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      animation: btn-spin 0.7s linear infinite;
+    }
+    @keyframes btn-spin { to { transform: rotate(360deg); } }
+    .btn--ghost { border: 0; background: transparent; padding: 0 var(--space-2); color: var(--color-text-sub); }
+    .btn--ghost:hover { background: var(--color-surface); color: var(--color-text); }
+
+    .tabs {
+      height: var(--tab-height);
+      border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: stretch;
+      background: #fff;
+      padding: 0 var(--space-4);
+      gap: var(--space-4);
+    }
+    .tabs button[role="tab"] {
+      height: var(--tab-height);
+      background: transparent;
+      border: 0;
+      border-bottom: var(--tab-indicator-h) solid transparent;
+      color: var(--color-text-sub);
+      font-size: var(--font-14);
+      font-weight: 600;
+      padding: 0 var(--space-1);
+      cursor: pointer;
+    }
+    .tabs button[role="tab"][aria-selected="true"] {
+      color: var(--color-text);
+      border-bottom-color: var(--color-primary);
+    }
+    .main { display: flex; height: calc(100vh - var(--topbar-height) - var(--tab-height)); }
+    .tab-panel[hidden] { display: none !important; }
+    .panel {
+      width: var(--panel-width); flex-shrink: 0;
+      background: var(--color-surface); border-right: 1px solid var(--color-border);
+      overflow-y: auto; padding: var(--space-4);
+      display: flex; flex-direction: column; gap: var(--space-4);
+    }
+    .preview { flex: 1; background: #fff; position: relative; }
+    .preview iframe { width: 100%; height: 100%; border: 0; display: block; }
+    @media (max-width: 767px) {
+      .main { flex-direction: column; }
+      .panel { width: 100%; height: 55vh; border-right: 0; border-bottom: 1px solid var(--color-border); }
+    }
+
+    /* ============================================================
+       §C. Section Card
+       ============================================================ */
+    .section {
+      background: #fff; border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); overflow: visible;
+      height: auto;
+      flex: 0 0 auto;
+      min-height: fit-content;
+    }
+    .section__header {
+      padding: 11px 14px;
+      font-size: var(--font-13); font-weight: 700;
+      background: #FAFBFC;
+      border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; gap: var(--space-2);
+    }
+    .section__count { margin-left: auto; font-size: var(--font-11); font-weight: 500; color: var(--color-text-muted); }
+    .section__body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+    }
+
+    /* ============================================================
+       §D. Field (SYSTEM.md §3-5)
+       ============================================================ */
+    .field { display: flex; flex-direction: column; gap: var(--space-1); }
+    .field__label {
+      font-size: var(--font-11); font-weight: 600;
+      color: var(--color-text-sub);
+      text-transform: uppercase; letter-spacing: 0.03em;
+    }
+    .field__hint { font-size: var(--font-11); color: var(--color-text-muted); margin-top: -2px; }
+    .field__input {
+      padding: 8px 10px;
+      border: 1px solid var(--color-border); border-radius: 6px;
+      font-size: var(--font-13); background: #fff; color: var(--color-text);
+      width: 100%;
+    }
+    .field__input--32 { min-height: 32px; height: auto; padding: 6px 10px; line-height: 1.35; }
+    .field__input--40 { min-height: 40px; height: auto; padding: 8px 12px; font-size: var(--font-14); line-height: 1.35; }
+    .field__input:focus { outline: none; border-color: var(--color-primary); }
+    textarea.field__input { resize: vertical; min-height: 60px; line-height: 1.5; font-family: inherit; }
+    .field__input.is-error { border-color: var(--color-error); }
+    .field__input:disabled { background: var(--color-surface-2); color: var(--color-text-muted); cursor: not-allowed; }
+    .input-field__control { position: relative; width: 100%; }
+    .input-field__control .field__input { padding-right: 34px; }
+    .input-field__clear {
+      position: absolute; top: 50%; right: 10px; transform: translateY(-50%);
+      width: 16px; height: 16px; border: 0; border-radius: 50%;
+      background: rgba(47, 52, 56, 0.45); color: #fff; font-size: 11px;
+      display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .input-field__clear .icon { width: 10px; height: 10px; stroke-width: 2; }
+    .input-field__clear.is-hidden { display: none; }
+
+    /* ============================================================
+       §E. Component Card (아코디언)
+       ============================================================ */
+    .comp-card {
+      background: #fff; border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); overflow: hidden;
+      transition: opacity var(--transition-fast);
+      height: auto;
+      flex: 0 0 auto;
+    }
+    .comp-card + .comp-card { margin-top: var(--space-2); }
+    .comp-card.is-hidden { opacity: 0.55; }
+    .comp-card.is-collapsed .comp-card__body { display: none; }
+    .comp-card.is-collapsed .comp-card__chevron { transform: rotate(-90deg); }
+    .comp-card.is-collapsed .comp-card__header { border-bottom: 0; }
+
+    .comp-card__header {
+      display: flex; align-items: center;
+      padding: 8px 10px 8px 12px; gap: var(--space-2);
+      cursor: pointer; user-select: none;
+      background: #FAFBFC; border-bottom: 1px solid var(--color-border);
+    }
+    .comp-card__chevron { font-size: 10px; color: var(--color-text-sub); transition: transform var(--transition-fast); width: 12px; }
+    .comp-card__type { flex: 1; font-size: var(--font-13); font-weight: 600; }
+    .comp-card__type small { font-weight: 400; color: var(--color-text-muted); margin-left: var(--space-2); }
+    .comp-card__actions { display: flex; gap: 0; }
+    .act-btn {
+      width: 28px; height: 28px; border-radius: 4px;
+      background: transparent; border: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: var(--font-12); color: var(--color-text-sub);
+    }
+    .icon {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .icon--sm { width: 14px; height: 14px; }
+    .icon--lg { width: 28px; height: 28px; }
+    .act-btn:hover { background: var(--color-surface-2); color: var(--color-text); }
+    .act-btn[data-act="del"]:hover { background: var(--color-error-soft); color: var(--color-error); }
+    .act-btn.is-on { color: var(--color-primary); }
+    .comp-card__body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+    }
+
+    /* ============================================================
+       §F. Sublist (동적 리스트)
+       ============================================================ */
+    .sublist { display: flex; flex-direction: column; gap: var(--space-2); }
+    .sublist__row { display: grid; gap: var(--space-2); align-items: center; }
+    .sublist__row--service { grid-template-columns: 40px 1fr 1fr 50px 28px; }
+    .sublist__row--field { grid-template-columns: 1fr 1fr 1fr 70px 28px; }
+    .sub-input {
+      padding: 6px 8px;
+      border: 1px solid var(--color-border); border-radius: 4px;
+      font-size: var(--font-12); min-width: 0;
+      background: #fff; color: var(--color-text);
+    }
+    .sub-input:focus { outline: none; border-color: var(--color-primary); }
+    .sub-select {
+      padding: 5px 6px;
+      border: 1px solid var(--color-border); border-radius: 4px;
+      font-size: var(--font-12); background: #fff;
+    }
+    .sub-check {
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--font-11); color: var(--color-text-sub);
+      cursor: pointer; user-select: none;
+    }
+    .sub-check input { margin-right: 4px; accent-color: var(--color-primary); }
+    .sublist__remove {
+      width: 28px; height: 28px; border: 0; background: transparent;
+      color: var(--color-text-muted); cursor: pointer; border-radius: 4px;
+      font-size: var(--font-13);
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .sublist__remove:hover { background: var(--color-error-soft); color: var(--color-error); }
+
+    .btn-add-sub {
+      padding: 6px 10px; border-radius: 6px;
+      border: 1px dashed var(--color-border);
+      background: #fff; font-size: var(--font-12);
+      color: var(--color-text-sub); cursor: pointer; align-self: flex-start;
+    }
+    .btn-add-sub:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+    .add-bar {
+      padding: 12px 14px; border-top: 1px solid var(--color-border);
+      display: flex; gap: var(--space-2); background: #FAFBFC;
+    }
+    .add-bar select {
+      flex: 1; padding: 7px 10px;
+      border: 1px solid var(--color-border); border-radius: 6px;
+      font-size: var(--font-13); background: #fff;
+    }
+
+    .toggle-row {
+      display: flex; align-items: center; gap: var(--space-2);
+      font-size: var(--font-12); color: var(--color-text);
+      padding: 6px 8px; background: #FAFBFC; border-radius: 4px;
+    }
+    .toggle-row input { accent-color: var(--color-primary); width: 14px; height: 14px; }
+
+    .inline-hint {
+      font-size: var(--font-11); color: var(--color-text-muted);
+      padding: 8px 10px; background: var(--color-primary-soft);
+      border-radius: 6px; line-height: 1.5;
+    }
+    .inline-hint code { background: rgba(0,0,0,0.05); padding: 1px 5px; border-radius: 3px; font-size: var(--font-11); }
+
+    /* ============================================================
+       §G. Toast
+       ============================================================ */
+    .toast {
+      position: fixed; bottom: 20px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1B1C1E; color: #fff;
+      padding: 10px 16px; border-radius: 8px;
+      font-size: var(--font-13);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 1000;
+    }
+    .toast.is-show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .preview__loading {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-text-muted); font-size: var(--font-13);
+      background: #fff; z-index: 1; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .preview__loading.is-hidden { opacity: 0; }
+
+    .banner-main {
+      display: flex;
+      height: calc(100vh - var(--topbar-height) - var(--tab-height));
+      min-height: 0;
+    }
+    .banner-panel {
+      width: var(--banner-input-width);
+      flex-shrink: 0;
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+      overflow-y: auto;
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+    .banner-preview {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      padding: var(--space-4);
+      gap: var(--space-3);
+      background: #fff;
+    }
+    .banner-preview__stage {
+      flex: 1;
+      min-height: 320px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: #F3F7FB;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .banner-canvas {
+      position: relative;
+      width: var(--banner-w);
+      height: var(--banner-h);
+      background: linear-gradient(135deg, var(--color-primary-soft), #fff);
+      transform-origin: center center;
+      overflow: hidden;
+    }
+    .banner-canvas img.banner-bg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .banner-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text-sub);
+      font-size: var(--font-14);
+      text-align: center;
+      padding: var(--space-4);
+      background: linear-gradient(140deg, var(--color-primary-soft), #fff);
+    }
+    .banner-text {
+      position: absolute;
+      z-index: 2;
+      color: #fff;
+      --pad-x: 80px;
+      --pad-y: 80px;
+      --title-size: 72px;
+      --subtitle-size: 32px;
+      --max-text-w: 920px;
+    }
+    .banner-text[data-position="top"] { top: var(--pad-y); left: var(--pad-x); right: var(--pad-x); }
+    .banner-text[data-position="center"] { top: 50%; transform: translateY(-50%); left: var(--pad-x); right: var(--pad-x); }
+    .banner-text[data-position="bottom"] { bottom: var(--pad-y); left: var(--pad-x); right: var(--pad-x); }
+    .banner-text[data-position="top"]::before,
+    .banner-text[data-position="bottom"]::before {
+      content: '';
+      position: absolute;
+      inset: -20px -40px;
+      z-index: -1;
+      background: linear-gradient(to var(--gradient-dir), transparent, rgba(0, 0, 0, 0.4));
+      border-radius: 12px;
+    }
+    .banner-text[data-position="top"] { --gradient-dir: top; }
+    .banner-text[data-position="bottom"] { --gradient-dir: bottom; }
+    .banner-title {
+      font-size: var(--title-size);
+      font-weight: 700;
+      line-height: 1.18;
+      max-width: var(--max-text-w);
+      word-break: keep-all;
+    }
+    .banner-title .hl { color: var(--color-primary); }
+    .banner-subtitle {
+      margin-top: 12px;
+      font-size: var(--subtitle-size);
+      font-weight: 500;
+      line-height: 1.3;
+      max-width: var(--max-text-w);
+      word-break: keep-all;
+    }
+    .banner-actions, .banner-history {
+      display: flex; gap: var(--space-2); flex-wrap: wrap;
+    }
+    .banner-history button {
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+      padding: 0;
+      overflow: hidden;
+      width: 92px;
+    }
+    .banner-history button.is-active { border-color: var(--color-primary); }
+    .banner-history img {
+      width: 100%;
+      height: 52px;
+      object-fit: cover;
+      display: block;
+      background: #f3f3f3;
+    }
+    .banner-history span {
+      display: block;
+      font-size: var(--font-11);
+      color: var(--color-text-sub);
+      padding: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .dropzone {
+      border: 1px dashed var(--color-border);
+      border-radius: 8px;
+      padding: var(--space-3);
+      background: #fff;
+      color: var(--color-text-sub);
+      text-align: center;
+      cursor: pointer;
+    }
+    .dropzone.is-dragging { border-color: var(--color-primary); background: var(--color-primary-soft); }
+    .dropzone__thumb { margin-top: var(--space-2); width: 100%; border-radius: 6px; max-height: 180px; object-fit: cover; display: none; }
+    .dropzone__thumb.is-show { display: block; }
+    .counter {
+      font-size: var(--font-11);
+      color: var(--color-text-sub);
+      text-align: right;
+    }
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      clip: rect(1px, 1px, 1px, 1px);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    @media (max-width: 1026px) {
+      .banner-main { flex-direction: row; }
+      .banner-panel {
+        width: var(--banner-input-width);
+        border-right: 1px solid var(--color-border);
+        border-bottom: 0;
+        max-height: none;
+      }
+      .banner-preview { min-height: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__title"><span class="dot"></span>마케팅 LP 빌더 · 어드민</div>
+    <div class="topbar__actions">
+      <button class="btn btn--sm btn--ghost" id="btn-reset" title="초기 상태로">초기화</button>
+      <button class="btn btn--sm btn--normal" id="btn-import">가져오기</button>
+      <button class="btn btn--sm btn--normal" id="btn-copy">코드 복사</button>
+      <button class="btn btn--sm btn--brand-solid" id="btn-export">JSON 내보내기</button>
+    </div>
+  </header>
+  <nav class="tabs" role="tablist" aria-label="어드민 탭">
+    <button role="tab" aria-selected="true" aria-controls="tab-panel-edit" id="tab-edit" data-tab="edit">페이지 편집</button>
+    <button role="tab" aria-selected="false" aria-controls="tab-panel-banner" id="tab-banner" data-tab="banner">배너 생성</button>
+  </nav>
+
+  <div class="main tab-panel" id="tab-panel-edit" role="tabpanel" aria-labelledby="tab-edit">
+    <aside class="panel">
+      <section class="section">
+        <header class="section__header">페이지 메타</header>
+        <div class="section__body" id="sec-meta"></div>
+      </section>
+
+      <section class="section">
+        <header class="section__header">공통 헤더</header>
+        <div class="section__body" id="sec-header"></div>
+      </section>
+
+      <section class="section">
+        <header class="section__header">
+          컴포넌트
+          <span class="section__count" id="sec-comp-count"></span>
+        </header>
+        <div class="section__body" id="sec-components" style="padding: 10px;"></div>
+        <div class="add-bar">
+          <select id="new-component-type">
+            <option value="serviceToggle">서비스 토글</option>
+            <option value="contactForm">연락처 폼</option>
+            <option value="contentImage">콘텐츠 이미지</option>
+          </select>
+          <button class="btn btn--sm btn--brand-solid" id="btn-add-component">+ 추가</button>
+        </div>
+      </section>
+
+      <div class="inline-hint">
+        💡 편집은 브라우저에 자동 저장돼요. 최종 적용은 <code>JSON 내보내기</code> 또는 <code>코드 복사</code> 후 <code>builder.html</code>의 <code>pageConfig</code>에 반영.
+      </div>
+    </aside>
+
+    <div class="preview">
+      <div class="preview__loading" id="preview-loading">프리뷰 로딩 중…</div>
+      <iframe id="preview-frame" src="builder.html?mode=preview" title="preview"></iframe>
+    </div>
+  </div>
+
+  <section class="banner-main tab-panel" id="tab-panel-banner" role="tabpanel" aria-labelledby="tab-banner" hidden>
+    <aside class="banner-panel">
+      <section class="section">
+        <header class="section__header">생성 입력</header>
+        <div class="section__body">
+          <div class="field">
+            <label class="field__label" for="banner-preset">프리셋</label>
+            <select class="field__input field__input--40" id="banner-preset">
+              <option value="square_1080">square_1080 (1080×1080)</option>
+              <option value="landscape_1200">landscape_1200 (1200×628)</option>
+              <option value="story_1080">story_1080 (1080×1920)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field__label" for="banner-title">타이틀 (HTML 허용)</label>
+            <textarea class="field__input" id="banner-title" rows="3" placeholder="가입만 해도 <em class=&quot;hl&quot;>상품권 최대 50만원</em>"></textarea>
+            <div class="counter" id="banner-title-counter">0/100</div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="banner-subtitle">서브타이틀</label>
+            <input class="field__input field__input--40" id="banner-subtitle" type="text" maxlength="50" placeholder="조건 입력 5초 → 전문 상담원 연결">
+          </div>
+          <div class="field">
+            <div class="field__label">텍스트 위치</div>
+            <div style="display:flex; gap:8px;">
+              <label class="toggle-row"><input type="radio" name="banner-position" value="top">상단</label>
+              <label class="toggle-row"><input type="radio" name="banner-position" value="center">중앙</label>
+              <label class="toggle-row"><input type="radio" name="banner-position" value="bottom" checked>하단</label>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field__label">레퍼런스 이미지</label>
+            <div class="dropzone" id="banner-dropzone" aria-label="레퍼런스 이미지 업로드 영역">
+              실사형 오브젝트 또는 3D 그래픽 에셋을 올리면 톤을 참고해서 생성해요
+              <img class="dropzone__thumb" id="banner-ref-thumb" alt="레퍼런스 썸네일">
+            </div>
+            <input id="banner-ref-input" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+            <button class="btn btn--sm btn--secondary" id="banner-ref-remove" type="button">레퍼런스 제거</button>
+          </div>
+          <div class="field">
+            <label class="field__label" for="banner-style">스타일 프롬프트</label>
+            <textarea class="field__input" id="banner-style" rows="3"></textarea>
+          </div>
+          <button class="btn btn--primary btn--md" id="banner-generate" type="button">생성</button>
+        </div>
+      </section>
+      <section class="section" id="banner-edit-section" hidden>
+        <header class="section__header">편집 프롬프트</header>
+        <div class="section__body">
+          <textarea class="field__input" id="banner-edit-prompt" rows="3" placeholder="배경을 어둡게 / 왼쪽으로 제품 이동 / 그림자 부드럽게"></textarea>
+          <button class="btn btn--secondary btn--md" id="banner-regenerate" type="button">다시 생성</button>
+        </div>
+      </section>
+      <div id="banner-live" class="visually-hidden" aria-live="polite"></div>
+    </aside>
+    <section class="banner-preview">
+      <div class="banner-preview__stage" id="banner-preview-stage">
+        <div class="banner-canvas" id="banner-canvas">
+          <img class="banner-bg" id="banner-bg" alt="">
+          <div class="banner-placeholder" id="banner-placeholder">좌측에서 조건 입력 후 [생성]을 눌러주세요</div>
+          <div class="banner-text" id="banner-text" data-position="bottom">
+            <h1 class="banner-title" id="banner-title-preview"></h1>
+            <p class="banner-subtitle" id="banner-subtitle-preview"></p>
+          </div>
+        </div>
+      </div>
+      <div class="banner-actions">
+        <button class="btn btn--sm btn--secondary" id="banner-export-png" type="button">PNG</button>
+        <button class="btn btn--sm btn--secondary" id="banner-export-html" type="button">HTML</button>
+        <button class="btn btn--sm btn--secondary" id="banner-download-raw" type="button">원본 이미지</button>
+        <button class="btn btn--sm btn--brand-solid" id="banner-apply-lp" type="button">현재 배너 → LP에 적용</button>
+      </div>
+      <div class="field">
+        <div class="field__label">히스토리 (최대 10개)</div>
+        <div class="banner-history" id="banner-history"></div>
+      </div>
+    </section>
+  </section>
+
+  <input type="file" id="import-input" accept="application/json" hidden>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* ============================================================
+       §1. defaultConfig (builder.html의 pageConfig와 동일)
+       ============================================================ */
+    const defaultConfig = {
+      meta: { title: 'title', slug: 'InternetRental_01_260417_ally' },
+      header: { ctaText: '상담하기', ctaHref: '#contact' },
+      components: [
+        { type: 'serviceToggle', visible: true, props: {
+            section: {
+              title: '놓치고 있던 내 최대 지원금 지금 확인해보세요!',
+              highlightTitle: '최대 지원금'
+            },
+            services: [
+              { value: 'internet', label: '인터넷', icon: 'icon:wifi', enabled: true },
+              { value: 'rental',   label: '렌탈',   icon: 'icon:droplet', enabled: true },
+              { value: 'moving',   label: '이사',   icon: 'icon:package', enabled: true }
+            ],
+            defaultValue: 'internet'
+        }},
+        { type: 'contactForm', visible: true, props: {
+            title: '상담 신청하기',
+            fields: [
+              { name: 'name',  label: '이름',   placeholder: '홍길동', required: true, type: 'text' },
+              { name: 'phone', label: '연락처', placeholder: "'-' 없이 숫자만 입력", required: true, type: 'tel' }
+            ],
+            consentText: '개인정보 수집·이용에 동의합니다. (항목: 이름, 연락처 / 목적: 상담 연락 / 보유기간: 90일)',
+            consentHref: 'https://www.ohou.se/policy/privacy',
+            submitText: '신청하기',
+            webhookUrl: 'PASTE_YOUR_APPS_SCRIPT_URL_HERE'
+        }},
+        { type: 'contentImage', visible: true, props: { src: '' }},
+        { type: 'contentImage', visible: true, props: { src: '' }}
+      ]
+    };
+
+    const ICON_SVG = {
+      chevronDown: '<path d="M6 9l6 6 6-6"/>',
+      eye: '<path d="M1.5 12s3.5-6 10.5-6 10.5 6 10.5 6-3.5 6-10.5 6S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3.2"/>',
+      eyeOff: '<path d="M3 3l18 18"/><path d="M10.6 6.3A11.6 11.6 0 0 1 12 6c7 0 10.5 6 10.5 6a19.4 19.4 0 0 1-4.4 4.9"/><path d="M6.2 8.1A18.3 18.3 0 0 0 1.5 12s3.5 6 10.5 6c1.2 0 2.4-.2 3.5-.6"/><path d="M12 9a3 3 0 0 1 3 3"/><path d="M9 12a3 3 0 0 0 3 3"/>',
+      arrowUp: '<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>',
+      arrowDown: '<path d="M12 5v14"/><path d="M6 13l6 6 6-6"/>',
+      copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><rect x="4" y="4" width="11" height="11" rx="2"/>',
+      x: '<path d="M6 6l12 12M18 6L6 18"/>',
+      xCircle: '<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>',
+      wifi: '<path d="M5 13a10 10 0 0 1 14 0"/><path d="M8 16a6 6 0 0 1 8 0"/><path d="M11.5 19.5a2 2 0 0 1 1 0"/><circle cx="12" cy="20" r="1"/>',
+      droplet: '<path d="M12 3c3.8 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2.2-6 6-11z"/>',
+      package: '<path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>',
+      star: '<path d="M12 3l2.7 5.4L21 9.2l-4.5 4.3 1.1 6.3L12 17l-5.6 2.8 1.1-6.3L3 9.2l6.3-.8z"/>',
+      diamond: '<path d="M12 2l9 10-9 10-9-10 9-10z"/>'
+    };
+    function iconMarkup(name, className = 'icon', label = '') {
+      const path = ICON_SVG[name];
+      if (!path) return '';
+      const aria = label ? `role="img" aria-label="${label}"` : 'aria-hidden="true"';
+      return `<svg class="${className}" viewBox="0 0 24 24" ${aria}>${path}</svg>`;
+    }
+
+    const typeLabels = { serviceToggle: '서비스 토글', contactForm: '연락처 폼', contentImage: '콘텐츠 이미지' };
+
+    const componentFactories = {
+      serviceToggle: () => ({ type: 'serviceToggle', visible: true, props: {
+        section: { title: '원하는 서비스를 선택해주세요', highlightTitle: '' },
+        services: [
+          { value: 'option_a', label: '옵션 A', icon: 'icon:star', enabled: true },
+          { value: 'option_b', label: '옵션 B', icon: 'icon:diamond', enabled: true }
+        ],
+        defaultValue: 'option_a'
+      }}),
+      contactForm: () => ({ type: 'contactForm', visible: true, props: {
+        title: '상담 신청하기',
+        fields: [
+          { name: 'name',  label: '이름',   placeholder: '', required: true, type: 'text' },
+          { name: 'phone', label: '연락처', placeholder: '', required: true, type: 'tel' }
+        ],
+        consentText: '개인정보 수집·이용에 동의합니다.',
+        consentHref: null,
+        submitText: '신청하기',
+        webhookUrl: ''
+      }}),
+      contentImage: () => ({ type: 'contentImage', visible: true, props: { src: '' } })
+    };
+
+    /* ============================================================
+       §2. State & Utils
+       ============================================================ */
+    const STORAGE_KEY = 'lp-builder-admin-config-v1';
+    const PRESET_DIMS = {
+      square_1080: { w: 1080, h: 1080, aspectRatio: '1:1' },
+      landscape_1200: { w: 1200, h: 628, aspectRatio: '16:9' },
+      story_1080: { w: 1080, h: 1920, aspectRatio: '9:16' }
+    };
+    const LAYOUT_RULES = {
+      square_1080: { titleFontSize: 72, subtitleFontSize: 32, paddingX: 80, paddingY: 80, maxTextWidth: 920 },
+      landscape_1200: { titleFontSize: 56, subtitleFontSize: 24, paddingX: 60, paddingY: 60, maxTextWidth: 1080 },
+      story_1080: { titleFontSize: 88, subtitleFontSize: 36, paddingX: 100, paddingY: 120, maxTextWidth: 880 }
+    };
+    const BANNER_STYLE_PLACEHOLDERS = [
+      '미니멀한 흰 배경, 부드러운 그림자, 파스텔 톤',
+      '깔끔한 스튜디오 조명, 제품 중심, 따뜻한 톤',
+      '밝은 배경, 신뢰감 있는 블루 계열, 심플'
+    ];
+    const ERROR = {
+      GENERATION_FAILED: '이미지 생성에 실패했어요. 잠시 후 다시 시도해주세요.',
+      QUOTA_EXCEEDED: '오늘 생성 한도를 초과했어요.',
+      TIMEOUT: '서버 응답이 너무 오래 걸려요. 네트워크를 확인해주세요.',
+      INVALID_PROMPT: '프롬프트를 조금 더 구체적으로 작성해주세요.',
+      API_KEY_MISSING: 'Apps Script에 FAL_API_KEY가 설정되지 않았어요.',
+      FILE_TOO_LARGE: '파일 크기는 5MB 이하여야 해요.',
+      UNSUPPORTED_FORMAT: 'PNG, JPG, WebP만 지원해요.',
+      EXPORT_FAILED: '내보내기에 실패했어요. 다시 시도해주세요.'
+    };
+    const state = { config: null, debounceTimer: null, previewReady: false, activeTab: 'edit' };
+    const bannerState = {
+      input: {
+        preset: 'square_1080',
+        title: '',
+        subtitle: '',
+        textPosition: 'bottom',
+        referenceImage: null,
+        stylePrompt: ''
+      },
+      history: [],
+      currentIndex: -1,
+      isGenerating: false,
+      lastError: null
+    };
+
+    function clone(o) { return JSON.parse(JSON.stringify(o)); }
+    function saveLocal() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.config)); } catch (_) {} }
+    function loadLocal() { try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch (_) { return null; } }
+    function stripHtml(raw) {
+      return String(raw || '')
+        .replace(/<br\s*\/?>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+    function normalizeServiceToggleProps(props) {
+      if (!props || typeof props !== 'object') return;
+      if (!props.section || typeof props.section !== 'object') props.section = {};
+      if (!props.section.title && props.title) props.section.title = stripHtml(props.title);
+      if (!props.section.highlightTitle && props.title) {
+        const match = String(props.title).match(/<em[^>]*>(.*?)<\/em>/i);
+        if (match && match[1]) props.section.highlightTitle = stripHtml(match[1]);
+      }
+      if (typeof props.section.title !== 'string') props.section.title = '';
+      if (typeof props.section.highlightTitle !== 'string') props.section.highlightTitle = '';
+    }
+    function normalizeConfig(config) {
+      const comps = Array.isArray(config?.components) ? config.components : [];
+      comps.forEach((c) => {
+        if (c?.type === 'serviceToggle') normalizeServiceToggleProps(c.props);
+      });
+      return config;
+    }
+
+    function sendPreview() {
+      clearTimeout(state.debounceTimer);
+      state.debounceTimer = setTimeout(() => {
+        saveLocal();
+        if (!state.previewReady) return;
+        const iframe = document.getElementById('preview-frame');
+        if (!iframe || !iframe.contentWindow) return;
+        iframe.contentWindow.postMessage({ type: 'config', payload: state.config }, '*');
+      }, 150);
+    }
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('is-show');
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.classList.remove('is-show'), 1800);
+    }
+    function setLiveMessage(msg) {
+      const el = document.getElementById('banner-live');
+      if (el) el.textContent = msg;
+    }
+    function getErrorMessage(code) {
+      if (!code) return ERROR.GENERATION_FAILED;
+      return ERROR[code] || ERROR.GENERATION_FAILED;
+    }
+    function escapeHtml(raw) {
+      return String(raw || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    function sanitizeTitleHtml(raw) {
+      const escaped = escapeHtml(raw);
+      return escaped.replace(/&lt;em class=&quot;hl&quot;&gt;([\s\S]*?)&lt;\/em&gt;/gi, '<em class="hl">$1</em>');
+    }
+    function updateTitleCounter() {
+      const counter = document.getElementById('banner-title-counter');
+      if (!counter) return;
+      counter.textContent = `${String(bannerState.input.title || '').length}/100`;
+    }
+    function calcPreviewScale(preset, stageWidth) {
+      const actualWidth = PRESET_DIMS[preset].w;
+      return Math.min(stageWidth / actualWidth, 1);
+    }
+    function buildPrompt({ stylePrompt, textPosition, preset, editPrompt }) {
+      const zone = { top: '상단 1/3', center: '중앙 좌우 1/4 여백', bottom: '하단 1/3' }[textPosition];
+      const aspect = { square_1080: '1:1 정사각', landscape_1200: '16:9 가로', story_1080: '9:16 세로' }[preset];
+      const editText = editPrompt ? `Edit instruction: ${editPrompt}.` : '';
+      return [
+        `Professional marketing banner background, ${aspect} composition.`,
+        `Style: ${stylePrompt || '깔끔하고 신뢰감 있는 브랜드 톤, 미니멀'}`,
+        `Composition: ${zone} 영역은 plain/flat 톤으로 비워둘 것 (텍스트 오버레이용 공간).`,
+        'Lighting: 부드럽고 균일함, 피사체 중심 조명.',
+        'Quality: high contrast subject, uncluttered background, professional photography.',
+        editText,
+        'NEGATIVE: no text, no typography, no letters, no Korean characters, no logos, no watermarks, cluttered background.'
+      ].filter(Boolean).join('\n').trim();
+    }
+    function getWebhookUrl() {
+      const contact = state.config.components.find((c) => c?.type === 'contactForm');
+      return (contact?.props?.webhookUrl || '').trim();
+    }
+    function updateBannerButtonState() {
+      const genBtn = document.getElementById('banner-generate');
+      const regenBtn = document.getElementById('banner-regenerate');
+      if (genBtn) {
+        genBtn.disabled = bannerState.isGenerating;
+        genBtn.textContent = bannerState.isGenerating ? '생성 중…' : '생성';
+      }
+      if (regenBtn) regenBtn.disabled = bannerState.isGenerating;
+    }
+    async function blobToDataURL(blob) {
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result || ''));
+        r.onerror = reject;
+        r.readAsDataURL(blob);
+      });
+    }
+    async function handleReferenceFile(file) {
+      if (!file) return;
+      const validTypes = ['image/png', 'image/jpeg', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        bannerState.lastError = 'UNSUPPORTED_FORMAT';
+        toast(getErrorMessage('UNSUPPORTED_FORMAT'));
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        bannerState.lastError = 'FILE_TOO_LARGE';
+        toast(getErrorMessage('FILE_TOO_LARGE'));
+        return;
+      }
+      bannerState.input.referenceImage = await blobToDataURL(file);
+      renderReferenceThumb();
+    }
+    function clearReferenceImage() {
+      bannerState.input.referenceImage = null;
+      renderReferenceThumb();
+    }
+    function renderReferenceThumb() {
+      const thumb = document.getElementById('banner-ref-thumb');
+      if (!thumb) return;
+      if (!bannerState.input.referenceImage) {
+        thumb.src = '';
+        thumb.classList.remove('is-show');
+        return;
+      }
+      thumb.src = bannerState.input.referenceImage;
+      thumb.classList.add('is-show');
+    }
+    function renderBannerHistory() {
+      const host = document.getElementById('banner-history');
+      if (!host) return;
+      host.innerHTML = '';
+      bannerState.history.forEach((item, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        if (idx === bannerState.currentIndex) btn.classList.add('is-active');
+        btn.innerHTML = `
+          <img src="${item.imageUrl}" alt="history thumbnail">
+          <span>${new Date(item.createdAt).toLocaleTimeString()}</span>
+        `;
+        btn.addEventListener('click', () => {
+          bannerState.currentIndex = idx;
+          renderBannerPreview();
+          renderBannerHistory();
+        });
+        host.appendChild(btn);
+      });
+    }
+    async function requestBannerGeneration({ prompt, referenceImage, aspectRatio, model, previousImage }) {
+      const url = getWebhookUrl();
+      if (!url || !/^https?:\/\//.test(url)) throw new Error('Webhook URL (Apps Script)를 먼저 입력해주세요.');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      try {
+        const payload = {
+          action: 'generate-banner',
+          prompt,
+          referenceImage: referenceImage || null,
+          aspectRatio,
+          model
+        };
+        if (previousImage) payload.referenceImage = previousImage;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+        let data = null;
+        try { data = await res.json(); } catch (_) {}
+        if (!res.ok || !data) return { ok: false, error: 'GENERATION_FAILED' };
+        return data;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return { ok: false, error: 'TIMEOUT' };
+        throw err;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }
+    function pushHistoryEntry({ imageUrl, prompt, referenceUsed }) {
+      bannerState.history.unshift({
+        id: `gen_${Date.now()}`,
+        imageUrl,
+        prompt,
+        referenceUsed: referenceUsed || null,
+        createdAt: new Date().toISOString()
+      });
+      if (bannerState.history.length > 10) bannerState.history = bannerState.history.slice(0, 10);
+      bannerState.currentIndex = 0;
+      document.getElementById('banner-edit-section').hidden = false;
+    }
+    function applyBannerLayout() {
+      const canvas = document.getElementById('banner-canvas');
+      const text = document.getElementById('banner-text');
+      const rules = LAYOUT_RULES[bannerState.input.preset];
+      const dim = PRESET_DIMS[bannerState.input.preset];
+      canvas.style.setProperty('--banner-w', `${dim.w}px`);
+      canvas.style.setProperty('--banner-h', `${dim.h}px`);
+      text.style.setProperty('--title-size', `${rules.titleFontSize}px`);
+      text.style.setProperty('--subtitle-size', `${rules.subtitleFontSize}px`);
+      text.style.setProperty('--pad-x', `${rules.paddingX}px`);
+      text.style.setProperty('--pad-y', `${rules.paddingY}px`);
+      text.style.setProperty('--max-text-w', `${rules.maxTextWidth}px`);
+      text.dataset.position = bannerState.input.textPosition;
+    }
+    function renderBannerPreview() {
+      applyBannerLayout();
+      const current = bannerState.history[bannerState.currentIndex];
+      const bg = document.getElementById('banner-bg');
+      const placeholder = document.getElementById('banner-placeholder');
+      const titleEl = document.getElementById('banner-title-preview');
+      const subtitleEl = document.getElementById('banner-subtitle-preview');
+      const safeHtml = sanitizeTitleHtml(bannerState.input.title);
+      titleEl.innerHTML = safeHtml;
+      subtitleEl.textContent = bannerState.input.subtitle;
+      if (current && current.imageUrl) {
+        bg.src = current.imageUrl;
+        bg.style.display = 'block';
+        placeholder.style.display = 'none';
+      } else {
+        bg.src = '';
+        bg.style.display = 'none';
+        placeholder.style.display = 'flex';
+      }
+      updateTitleCounter();
+      updatePreviewScale();
+    }
+    function updatePreviewScale() {
+      const stage = document.getElementById('banner-preview-stage');
+      const canvas = document.getElementById('banner-canvas');
+      if (!stage || !canvas) return;
+      const scale = calcPreviewScale(bannerState.input.preset, stage.clientWidth - 24);
+      canvas.style.transform = `scale(${scale})`;
+    }
+    function ts() {
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    }
+    function downloadBlob(blob, filename) {
+      const a = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    async function imageUrlToDataUrl(url) {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      return blobToDataURL(blob);
+    }
+    async function exportBannerPNG() {
+      const canvasEl = document.getElementById('banner-canvas');
+      const current = bannerState.history[bannerState.currentIndex];
+      if (!current || !current.imageUrl) return toast('먼저 이미지를 생성해주세요');
+      const cloned = canvasEl.cloneNode(true);
+      const img = cloned.querySelector('.banner-bg');
+      if (img && /^https?:\/\//.test(current.imageUrl)) {
+        try { img.src = await imageUrlToDataUrl(current.imageUrl); } catch (_) {}
+      }
+      const { w, h } = PRESET_DIMS[bannerState.input.preset];
+      const svgData = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
+          <foreignObject width="100%" height="100%">
+            <div xmlns="http://www.w3.org/1999/xhtml">${cloned.outerHTML}</div>
+          </foreignObject>
+        </svg>`;
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      const imgEl = new Image();
+      imgEl.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(imgEl, 0, 0);
+        canvas.toBlob((blob) => {
+          if (!blob) return toast(getErrorMessage('EXPORT_FAILED'));
+          downloadBlob(blob, `banner_${bannerState.input.preset}_${ts()}.png`);
+          URL.revokeObjectURL(svgUrl);
+        }, 'image/png');
+      };
+      imgEl.onerror = () => {
+        URL.revokeObjectURL(svgUrl);
+        toast(getErrorMessage('EXPORT_FAILED'));
+      };
+      imgEl.src = svgUrl;
+    }
+    async function exportBannerHTML() {
+      const current = bannerState.history[bannerState.currentIndex];
+      if (!current || !current.imageUrl) return toast('먼저 이미지를 생성해주세요');
+      const dim = PRESET_DIMS[bannerState.input.preset];
+      const rules = LAYOUT_RULES[bannerState.input.preset];
+      const html = `<style>
+  .lp-banner-export{position:relative;width:${dim.w}px;height:${dim.h}px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif}
+  .lp-banner-export img{width:100%;height:100%;object-fit:cover;display:block}
+  .lp-banner-export .txt{position:absolute;left:${rules.paddingX}px;right:${rules.paddingX}px;${bannerState.input.textPosition === 'top' ? `top:${rules.paddingY}px;` : ''}${bannerState.input.textPosition === 'bottom' ? `bottom:${rules.paddingY}px;` : ''}${bannerState.input.textPosition === 'center' ? 'top:50%;transform:translateY(-50%);' : ''}color:#fff}
+  .lp-banner-export h1{margin:0;font-size:${rules.titleFontSize}px;line-height:1.18}
+  .lp-banner-export h1 .hl{color:${getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#00A1FF'};}
+  .lp-banner-export p{margin:12px 0 0;font-size:${rules.subtitleFontSize}px;line-height:1.3}
+</style>
+<div class="lp-banner-export">
+  <img src="${current.imageUrl}" alt="">
+  <div class="txt">
+    <h1>${sanitizeTitleHtml(bannerState.input.title)}</h1>
+    <p>${escapeHtml(bannerState.input.subtitle)}</p>
+  </div>
+</div>`;
+      await navigator.clipboard.writeText(html);
+      toast('HTML 스니펫을 복사했어요');
+    }
+    async function downloadRawImage() {
+      const current = bannerState.history[bannerState.currentIndex];
+      if (!current || !current.imageUrl) return toast('먼저 이미지를 생성해주세요');
+      const res = await fetch(current.imageUrl);
+      const blob = await res.blob();
+      downloadBlob(blob, `banner_raw_${ts()}.png`);
+    }
+    function applyBannerToLp() {
+      const current = bannerState.history[bannerState.currentIndex];
+      if (!current || !current.imageUrl) return toast('먼저 이미지를 생성해주세요');
+      if (!confirm('현재 배너를 LP 배경에 적용할까요?')) return;
+      const target = state.config.components.find((c) => c.type === 'contentImage');
+      if (!target) return toast('적용할 콘텐츠 이미지 컴포넌트가 없어요');
+      target.props.src = current.imageUrl;
+      renderComponents();
+      sendPreview();
+      toast('LP 배너 배경에 적용됐어요');
+    }
+
+    /* ============================================================
+       §3. Field Helpers
+       ============================================================ */
+    function createField({ label, hint, value, onInput, type = 'text', placeholder = '', rows }) {
+      const wrap = document.createElement('div');
+      wrap.className = 'field';
+      if (label) {
+        const lab = document.createElement('label');
+        lab.className = 'field__label'; lab.textContent = label;
+        wrap.appendChild(lab);
+      }
+      let ctrl;
+      if (type === 'textarea') { ctrl = document.createElement('textarea'); if (rows) ctrl.rows = rows; }
+      else { ctrl = document.createElement('input'); ctrl.type = type; }
+      ctrl.className = `field__input ${type === 'textarea' ? '' : 'field__input--40'}`.trim();
+      ctrl.placeholder = placeholder;
+      ctrl.value = value ?? '';
+      const onControlInput = () => onInput(ctrl.value);
+      ctrl.addEventListener('input', onControlInput);
+
+      if (type !== 'textarea') {
+        const control = document.createElement('div');
+        control.className = 'input-field__control';
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'input-field__clear is-hidden';
+        clearBtn.setAttribute('aria-label', `${label || '입력값'} 지우기`);
+        clearBtn.innerHTML = iconMarkup('xCircle', 'icon icon--sm');
+        const toggleClear = () => clearBtn.classList.toggle('is-hidden', !ctrl.value);
+        ctrl.addEventListener('input', toggleClear);
+        ctrl.addEventListener('blur', toggleClear);
+        ctrl.addEventListener('focus', toggleClear);
+        clearBtn.addEventListener('click', () => {
+          ctrl.value = '';
+          onControlInput();
+          toggleClear();
+          ctrl.focus();
+        });
+        control.appendChild(ctrl);
+        control.appendChild(clearBtn);
+        wrap.appendChild(control);
+        toggleClear();
+      } else {
+        wrap.appendChild(ctrl);
+      }
+      if (hint) {
+        const h = document.createElement('div');
+        h.className = 'field__hint'; h.textContent = hint;
+        wrap.appendChild(h);
+      }
+      return wrap;
+    }
+    function createCheckbox({ label, value, onChange }) {
+      const wrap = document.createElement('label');
+      wrap.className = 'toggle-row';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.checked = !!value;
+      cb.addEventListener('change', () => onChange(cb.checked));
+      const span = document.createElement('span'); span.textContent = label;
+      wrap.appendChild(cb); wrap.appendChild(span);
+      return wrap;
+    }
+
+    /* ============================================================
+       §4. Section Renderers (meta / header / footer)
+       ============================================================ */
+    function renderMeta() {
+      const host = document.getElementById('sec-meta');
+      host.innerHTML = '';
+      host.appendChild(createField({
+        label: '페이지 타이틀 (브라우저 탭)', value: state.config.meta.title,
+        onInput: v => { state.config.meta.title = v; sendPreview(); }
+      }));
+      host.appendChild(createField({
+        label: 'Slug (캠페인 식별자)', value: state.config.meta.slug,
+        hint: '권장 포맷: {캠페인}_{NN}_{YYMMDD}_{담당자}  예) InternetRental_01_260417_ally',
+        onInput: v => { state.config.meta.slug = v; sendPreview(); }
+      }));
+    }
+    function renderHeaderSec() {
+      const host = document.getElementById('sec-header');
+      host.innerHTML = '';
+      host.appendChild(createField({ label: 'CTA 버튼 텍스트', value: state.config.header.ctaText, onInput: v => { state.config.header.ctaText = v; sendPreview(); } }));
+      host.appendChild(createField({ label: 'CTA 링크', value: state.config.header.ctaHref, placeholder: '#contact 또는 URL', onInput: v => { state.config.header.ctaHref = v; sendPreview(); } }));
+    }
+    /* ============================================================
+       §5. Component Editors
+       ============================================================ */
+    function editorServiceToggle(idx, host) {
+      const props = state.config.components[idx].props;
+      normalizeServiceToggleProps(props);
+      host.appendChild(createField({
+        label: '타이틀', value: props.section.title,
+        onInput: v => { props.section.title = v; sendPreview(); }
+      }));
+      host.appendChild(createField({
+        label: '하이라이트 타이틀', value: props.section.highlightTitle,
+        onInput: v => { props.section.highlightTitle = v; sendPreview(); }
+      }));
+
+      const listLabel = document.createElement('div');
+      listLabel.className = 'field__label'; listLabel.textContent = '서비스 목록';
+      host.appendChild(listLabel);
+
+      const listWrap = document.createElement('div'); listWrap.className = 'sublist';
+      host.appendChild(listWrap);
+
+      function renderServicesList() {
+        listWrap.innerHTML = '';
+        props.services.forEach((s, i) => {
+          const row = document.createElement('div');
+          row.className = 'sublist__row sublist__row--service';
+          row.innerHTML = `
+            <input class="sub-input" data-k="icon"  placeholder="아이콘" />
+            <input class="sub-input" data-k="label" placeholder="라벨" />
+            <input class="sub-input" data-k="value" placeholder="value" />
+            <label class="sub-check"><input type="checkbox" data-k="enabled" /> 표시</label>
+            <button class="sublist__remove" type="button" title="삭제">${iconMarkup('x', 'icon icon--sm')}</button>
+          `;
+          row.querySelectorAll('input[type="text"], input:not([type])').forEach(inp => {
+            if (inp.dataset.k === 'enabled') return;
+            inp.value = s[inp.dataset.k] || '';
+            inp.addEventListener('input', () => { s[inp.dataset.k] = inp.value; sendPreview(); });
+          });
+          const cb = row.querySelector('input[data-k="enabled"]');
+          cb.checked = s.enabled !== false;
+          cb.addEventListener('change', () => { s.enabled = cb.checked; renderDefaultSelect(); sendPreview(); });
+
+          row.querySelector('.sublist__remove').addEventListener('click', () => {
+            if (props.services.length <= 1) { toast('서비스는 최소 1개 필요해요'); return; }
+            props.services.splice(i, 1);
+            if (props.defaultValue === s.value) {
+              const firstEnabled = props.services.find(x => x.enabled !== false);
+              props.defaultValue = firstEnabled ? firstEnabled.value : props.services[0].value;
+            }
+            renderServicesList(); renderDefaultSelect(); sendPreview();
+          });
+          listWrap.appendChild(row);
+        });
+      }
+
+      const addSvcBtn = document.createElement('button');
+      addSvcBtn.className = 'btn-add-sub'; addSvcBtn.type = 'button'; addSvcBtn.textContent = '+ 서비스 추가';
+      addSvcBtn.addEventListener('click', () => {
+        props.services.push({ value: `opt_${Date.now()}`, label: '새 서비스', icon: 'icon:star', enabled: true });
+        renderServicesList(); renderDefaultSelect(); sendPreview();
+      });
+      host.appendChild(addSvcBtn);
+      renderServicesList();
+
+      const defaultWrap = document.createElement('div');
+      defaultWrap.className = 'field';
+      host.appendChild(defaultWrap);
+      function renderDefaultSelect() {
+        defaultWrap.innerHTML = '';
+        const lab = document.createElement('label');
+        lab.className = 'field__label'; lab.textContent = '기본 선택값 (enabled 항목만)';
+        defaultWrap.appendChild(lab);
+        const sel = document.createElement('select'); sel.className = 'field__input';
+        props.services.filter(s => s.enabled !== false).forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.value; opt.textContent = s.label;
+          if (props.defaultValue === s.value) opt.selected = true;
+          sel.appendChild(opt);
+        });
+        sel.addEventListener('change', () => { props.defaultValue = sel.value; sendPreview(); });
+        defaultWrap.appendChild(sel);
+      }
+      renderDefaultSelect();
+
+    }
+
+    function editorContactForm(idx, host) {
+      const props = state.config.components[idx].props;
+      host.appendChild(createField({ label: '섹션 타이틀', value: props.title, onInput: v => { props.title = v; sendPreview(); } }));
+
+      const listLabel = document.createElement('div');
+      listLabel.className = 'field__label'; listLabel.textContent = '폼 필드';
+      host.appendChild(listLabel);
+
+      const listWrap = document.createElement('div'); listWrap.className = 'sublist';
+      host.appendChild(listWrap);
+
+      function renderFieldsList() {
+        listWrap.innerHTML = '';
+        props.fields.forEach((f, i) => {
+          const row = document.createElement('div');
+          row.className = 'sublist__row sublist__row--field';
+          row.innerHTML = `
+            <input class="sub-input" data-k="name" placeholder="name" />
+            <input class="sub-input" data-k="label" placeholder="라벨" />
+            <input class="sub-input" data-k="placeholder" placeholder="placeholder" />
+            <select class="sub-select" data-k="type">
+              <option value="text">text</option>
+              <option value="tel">tel</option>
+              <option value="email">email</option>
+            </select>
+            <button class="sublist__remove" type="button" title="삭제">${iconMarkup('x', 'icon icon--sm')}</button>
+          `;
+          row.querySelectorAll('input').forEach(inp => {
+            inp.value = f[inp.dataset.k] || '';
+            inp.addEventListener('input', () => { f[inp.dataset.k] = inp.value; sendPreview(); });
+          });
+          const sel = row.querySelector('select'); sel.value = f.type || 'text';
+          sel.addEventListener('change', () => { f.type = sel.value; sendPreview(); });
+          row.querySelector('.sublist__remove').addEventListener('click', () => {
+            if (props.fields.length <= 1) { toast('필드는 최소 1개 필요해요'); return; }
+            if (f.name === 'name' || f.name === 'phone') {
+              if (!confirm(`"${f.name}" 필드는 시트 컬럼과 매핑돼요. 정말 삭제할까요?`)) return;
+            }
+            props.fields.splice(i, 1); renderFieldsList(); sendPreview();
+          });
+          listWrap.appendChild(row);
+        });
+      }
+
+      const addFieldBtn = document.createElement('button');
+      addFieldBtn.className = 'btn-add-sub'; addFieldBtn.type = 'button'; addFieldBtn.textContent = '+ 필드 추가';
+      addFieldBtn.addEventListener('click', () => {
+        props.fields.push({ name: `field_${Date.now()}`, label: '새 필드', placeholder: '', required: false, type: 'text' });
+        renderFieldsList(); sendPreview();
+      });
+      host.appendChild(addFieldBtn);
+      renderFieldsList();
+
+      host.appendChild(createField({ label: '개인정보 동의문', type: 'textarea', rows: 2, value: props.consentText, onInput: v => { props.consentText = v; sendPreview(); } }));
+      host.appendChild(createField({ label: '개인정보 처리방침 링크', value: props.consentHref || '', placeholder: 'https://www.ohou.se/policy/privacy', onInput: v => { props.consentHref = v || null; sendPreview(); } }));
+      host.appendChild(createField({ label: '제출 버튼 텍스트', value: props.submitText, onInput: v => { props.submitText = v; sendPreview(); } }));
+      host.appendChild(createField({
+        label: 'Webhook URL (Apps Script)', value: props.webhookUrl, placeholder: 'https://script.google.com/...',
+        hint: '빈 값이면 실제 전송 불가 (미리보기만)',
+        onInput: v => { props.webhookUrl = v; sendPreview(); }
+      }));
+    }
+
+    function editorContentImage(idx, host) {
+      const props = state.config.components[idx].props;
+      host.appendChild(createField({
+        label: '이미지 URL', value: props.src, placeholder: 'https://...',
+        hint: '비워두면 placeholder로 렌더',
+        onInput: v => { props.src = v; sendPreview(); }
+      }));
+    }
+
+    const editors = { serviceToggle: editorServiceToggle, contactForm: editorContactForm, contentImage: editorContentImage };
+
+    /* ============================================================
+       §6. Component List
+       ============================================================ */
+    function renderComponents() {
+      const host = document.getElementById('sec-components');
+      host.innerHTML = '';
+      const comps = state.config.components;
+
+      comps.forEach((c, i) => {
+        const card = document.createElement('div');
+        card.className = 'comp-card' + (c.visible === false ? ' is-hidden' : '') + ' is-collapsed';
+        const header = document.createElement('div');
+        header.className = 'comp-card__header';
+        header.innerHTML = `
+          <span class="comp-card__chevron">${iconMarkup('chevronDown', 'icon icon--sm')}</span>
+          <span class="comp-card__type">${typeLabels[c.type] || c.type} <small>${i + 1}</small></span>
+          <div class="comp-card__actions">
+            <button class="act-btn ${c.visible !== false ? 'is-on' : ''}" data-act="toggle" title="표시/숨김">${c.visible !== false ? iconMarkup('eye') : iconMarkup('eyeOff')}</button>
+            <button class="act-btn" data-act="up"   title="위로">${iconMarkup('arrowUp')}</button>
+            <button class="act-btn" data-act="down" title="아래로">${iconMarkup('arrowDown')}</button>
+            <button class="act-btn" data-act="dup"  title="복제">${iconMarkup('copy')}</button>
+            <button class="act-btn" data-act="del"  title="삭제">${iconMarkup('x')}</button>
+          </div>
+        `;
+        card.appendChild(header);
+
+        const body = document.createElement('div');
+        body.className = 'comp-card__body';
+        const editFn = editors[c.type];
+        if (editFn) editFn(i, body);
+        else body.textContent = `Unknown type: ${c.type}`;
+        card.appendChild(body);
+
+        header.addEventListener('click', (e) => {
+          if (e.target.closest('.comp-card__actions')) return;
+          card.classList.toggle('is-collapsed');
+        });
+
+        header.querySelector('[data-act="toggle"]').addEventListener('click', (e) => {
+          e.stopPropagation();
+          c.visible = c.visible === false ? true : false;
+          renderComponents(); sendPreview();
+        });
+        header.querySelector('[data-act="up"]').addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (i === 0) return;
+          [comps[i - 1], comps[i]] = [comps[i], comps[i - 1]];
+          renderComponents(); sendPreview();
+        });
+        header.querySelector('[data-act="down"]').addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (i === comps.length - 1) return;
+          [comps[i + 1], comps[i]] = [comps[i], comps[i + 1]];
+          renderComponents(); sendPreview();
+        });
+        header.querySelector('[data-act="dup"]').addEventListener('click', (e) => {
+          e.stopPropagation();
+          comps.splice(i + 1, 0, clone(c));
+          renderComponents(); sendPreview();
+        });
+        header.querySelector('[data-act="del"]').addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (!confirm(`"${typeLabels[c.type]}" 컴포넌트를 삭제할까요?`)) return;
+          comps.splice(i, 1); renderComponents(); sendPreview();
+        });
+
+        host.appendChild(card);
+      });
+
+      document.getElementById('sec-comp-count').textContent = `${comps.length}개`;
+    }
+
+    function renderAll() {
+      renderMeta(); renderHeaderSec(); renderComponents();
+    }
+    function setActiveTab(tab, updateHash = true) {
+      const tabs = Array.from(document.querySelectorAll('.tabs [role="tab"]'));
+      const panels = {
+        edit: document.getElementById('tab-panel-edit'),
+        banner: document.getElementById('tab-panel-banner')
+      };
+      state.activeTab = tab;
+      tabs.forEach((btn) => {
+        const selected = btn.dataset.tab === tab;
+        btn.setAttribute('aria-selected', selected ? 'true' : 'false');
+      });
+      Object.entries(panels).forEach(([key, panel]) => {
+        if (!panel) return;
+        panel.hidden = key !== tab;
+      });
+      if (updateHash) location.hash = `tab=${tab}`;
+      if (tab === 'banner') updatePreviewScale();
+    }
+    function bindTabs() {
+      const tabs = Array.from(document.querySelectorAll('.tabs [role="tab"]'));
+      tabs.forEach((btn, idx) => {
+        btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
+        btn.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            const next = e.key === 'ArrowRight'
+              ? tabs[(idx + 1) % tabs.length]
+              : tabs[(idx - 1 + tabs.length) % tabs.length];
+            next.focus();
+          }
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setActiveTab(btn.dataset.tab);
+          }
+        });
+      });
+      const initial = location.hash === '#tab=banner' ? 'banner' : 'edit';
+      setActiveTab(initial, false);
+      window.addEventListener('hashchange', () => {
+        if (location.hash === '#tab=banner') setActiveTab('banner', false);
+        if (location.hash === '#tab=edit') setActiveTab('edit', false);
+      });
+    }
+    function bindBannerTab() {
+      const presetEl = document.getElementById('banner-preset');
+      const titleEl = document.getElementById('banner-title');
+      const subtitleEl = document.getElementById('banner-subtitle');
+      const styleEl = document.getElementById('banner-style');
+      const regenInput = document.getElementById('banner-edit-prompt');
+      const posEls = Array.from(document.querySelectorAll('input[name="banner-position"]'));
+      const dropzone = document.getElementById('banner-dropzone');
+      const refInput = document.getElementById('banner-ref-input');
+      const resizeObserver = new ResizeObserver(updatePreviewScale);
+      resizeObserver.observe(document.getElementById('banner-preview-stage'));
+
+      styleEl.placeholder = BANNER_STYLE_PLACEHOLDERS[Math.floor(Math.random() * BANNER_STYLE_PLACEHOLDERS.length)];
+      presetEl.value = bannerState.input.preset;
+      titleEl.value = bannerState.input.title;
+      subtitleEl.value = bannerState.input.subtitle;
+      styleEl.value = bannerState.input.stylePrompt;
+
+      presetEl.addEventListener('change', () => {
+        bannerState.input.preset = presetEl.value;
+        renderBannerPreview();
+      });
+      titleEl.addEventListener('input', () => {
+        bannerState.input.title = titleEl.value.slice(0, 100);
+        if (titleEl.value.length > 100) titleEl.value = bannerState.input.title;
+        renderBannerPreview();
+      });
+      subtitleEl.addEventListener('input', () => {
+        bannerState.input.subtitle = subtitleEl.value;
+        renderBannerPreview();
+      });
+      styleEl.addEventListener('input', () => { bannerState.input.stylePrompt = styleEl.value; });
+      posEls.forEach((el) => {
+        el.checked = el.value === bannerState.input.textPosition;
+        el.addEventListener('change', () => {
+          if (!el.checked) return;
+          bannerState.input.textPosition = el.value;
+          renderBannerPreview();
+        });
+      });
+
+      const onDrop = async (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('is-dragging');
+        const file = e.dataTransfer?.files?.[0];
+        if (!file) return;
+        await handleReferenceFile(file);
+      };
+      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('is-dragging'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-dragging'));
+      dropzone.addEventListener('drop', onDrop);
+      dropzone.addEventListener('click', () => refInput.click());
+      refInput.addEventListener('change', async () => {
+        await handleReferenceFile(refInput.files[0]);
+        refInput.value = '';
+      });
+      document.getElementById('banner-ref-remove').addEventListener('click', clearReferenceImage);
+
+      const runGeneration = async (editPrompt = '') => {
+        try {
+          bannerState.isGenerating = true;
+          updateBannerButtonState();
+          setLiveMessage('배너 생성 요청 중입니다');
+          const prompt = buildPrompt({ ...bannerState.input, editPrompt });
+          const current = bannerState.history[bannerState.currentIndex];
+          let result = await requestBannerGeneration({
+            prompt,
+            referenceImage: bannerState.input.referenceImage,
+            aspectRatio: PRESET_DIMS[bannerState.input.preset].aspectRatio,
+            model: 'nano-banana',
+            previousImage: editPrompt && current ? current.imageUrl : null
+          });
+          if (!result.ok) {
+            result = await requestBannerGeneration({
+              prompt,
+              referenceImage: bannerState.input.referenceImage,
+              aspectRatio: PRESET_DIMS[bannerState.input.preset].aspectRatio,
+              model: 'seedream-4',
+              previousImage: editPrompt && current ? current.imageUrl : null
+            });
+          }
+          if (!result.ok || !result.imageUrl) {
+            bannerState.lastError = result?.error || 'GENERATION_FAILED';
+            toast(getErrorMessage(bannerState.lastError));
+            return;
+          }
+          pushHistoryEntry({
+            imageUrl: result.imageUrl,
+            prompt,
+            referenceUsed: bannerState.input.referenceImage
+          });
+          renderBannerPreview();
+          renderBannerHistory();
+          setLiveMessage('배너 생성이 완료되었습니다');
+        } catch (err) {
+          toast(err.message || getErrorMessage('GENERATION_FAILED'));
+        } finally {
+          bannerState.isGenerating = false;
+          updateBannerButtonState();
+        }
+      };
+
+      document.getElementById('banner-generate').addEventListener('click', () => runGeneration(''));
+      document.getElementById('banner-regenerate').addEventListener('click', () => runGeneration(regenInput.value.trim()));
+      document.getElementById('banner-export-png').addEventListener('click', exportBannerPNG);
+      document.getElementById('banner-export-html').addEventListener('click', exportBannerHTML);
+      document.getElementById('banner-download-raw').addEventListener('click', () => {
+        downloadRawImage().catch(() => toast(getErrorMessage('EXPORT_FAILED')));
+      });
+      document.getElementById('banner-apply-lp').addEventListener('click', applyBannerToLp);
+
+      renderReferenceThumb();
+      renderBannerPreview();
+      renderBannerHistory();
+      updateBannerButtonState();
+    }
+
+    /* ============================================================
+       §7. Topbar Actions
+       ============================================================ */
+    document.getElementById('btn-export').addEventListener('click', () => {
+      const json = JSON.stringify(state.config, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `config-${state.config.meta.slug || 'page'}.json`;
+      a.click(); URL.revokeObjectURL(url);
+      toast('JSON 파일을 다운로드했어요');
+    });
+
+    document.getElementById('btn-import').addEventListener('click', () => { document.getElementById('import-input').click(); });
+    document.getElementById('import-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          if (!parsed.meta || !parsed.components) throw new Error('config 형식이 아니에요');
+          state.config = normalizeConfig(parsed);
+          renderAll(); sendPreview();
+          toast('가져오기 완료');
+        } catch (err) { alert('불러오기 실패: ' + err.message); }
+        finally { e.target.value = ''; }
+      };
+      reader.readAsText(file);
+    });
+
+    document.getElementById('btn-copy').addEventListener('click', async () => {
+      const code = `const pageConfig = ${JSON.stringify(state.config, null, 2)};`;
+      try { await navigator.clipboard.writeText(code); toast('코드를 클립보드에 복사했어요'); }
+      catch (_) {
+        const ta = document.createElement('textarea');
+        ta.value = code; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        toast('복사 완료');
+      }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      if (!confirm('초기 상태로 되돌릴까요? (저장 안 된 변경사항은 사라집니다)')) return;
+      state.config = normalizeConfig(clone(defaultConfig));
+      renderAll(); sendPreview();
+      toast('초기화됐어요');
+    });
+
+    document.getElementById('btn-add-component').addEventListener('click', () => {
+      const type = document.getElementById('new-component-type').value;
+      const factory = componentFactories[type];
+      if (!factory) return;
+      state.config.components.push(factory());
+      renderComponents(); sendPreview();
+      toast(`${typeLabels[type]} 추가됨`);
+    });
+
+    /* ============================================================
+       §8. Preview Handshake
+       ============================================================ */
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'preview-ready') {
+        state.previewReady = true;
+        document.getElementById('preview-loading').classList.add('is-hidden');
+        sendPreview();
+      }
+    });
+
+    /* ============================================================
+       §9. Boot
+       ============================================================ */
+    (function init() {
+      state.config = normalizeConfig(loadLocal() || clone(defaultConfig));
+      renderAll();
+      bindTabs();
+      bindBannerTab();
+    })();
+  </script>
+</body>
+</html>
