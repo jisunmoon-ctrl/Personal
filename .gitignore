@@ -1,2 +1,16 @@
+# macOS
 .DS_Store
+
 .claude/
+
+# Design tools temporary files
+*.tmp
+*.temp
+~$*
+
+# Archive outputs
+*.zip
+*.rar
+
+# Local notes
+*.local.md
